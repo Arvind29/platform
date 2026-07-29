@@ -36,17 +36,19 @@ docker compose up -d
 
 This starts MariaDB, phpMyAdmin, and Keycloak with hard-coded dev credentials. No configuration files are required.
 
-To also build and run the API in Docker (useful when working on Studio only):
+To also build and run the API in Docker (useful when working on Studio only). Add `--build` if
+you've changed source code in `apps/api` or `apps/bff` since the images were last built, since
+Compose doesn't rebuild automatically otherwise:
 
 ```bash
-docker compose --profile api up -d
+docker compose --profile api up -d --build
 ```
 
-To run everything in Docker — API, Studio, Backend For Frontend (BFF), and a reverse proxy in front, mirroring a real
-deployment:
+To run everything in Docker: API, Studio, Backend For Frontend (BFF), and a reverse proxy in front, mirroring a real
+deployment (same `--build` note applies):
 
 ```bash
-docker compose --profile client up -d
+docker compose --profile client up -d --build
 ```
 
 Studio is then available at [http://localhost:8080](http://localhost:8080).
