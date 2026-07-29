@@ -32,6 +32,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -43,7 +44,9 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.client.web.HttpSessionOAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestCustomizers;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -63,6 +66,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.session.web.http.CookieSerializer;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -74,8 +78,9 @@ import java.util.function.Supplier;
 /**
  * Session-cookie auth for the Dialogue Branch web client: this service performs the Authorization
  * Code + PKCE exchange against Keycloak and keeps the resulting access/refresh token
- * server-side, in the HTTP session (in-memory — single instance is sufficient for this service's
- * scope). The browser only ever holds the {@code JSESSIONID} cookie, never a raw token.
+ * server-side, in the HTTP session (persisted to MariaDB via Spring Session, not this JVM's own
+ * heap — see {@code application.yml}'s {@code spring.session} block). The browser only ever holds
+ * the {@code JSESSIONID} cookie, never a raw token.
  *
  * <p>Mirrors the Backend-for-Frontend pattern already in production use for the Lizz platform's
  * own web clients (see the {@code apps/bff} module in the {@code connectedcare-nl/lizz}
@@ -137,6 +142,21 @@ public class SecurityConfig {
     }
 
     /**
+     * Overrides Boot's default {@code InMemoryOAuth2AuthorizedClientRepository} — a plain JVM heap
+     * map — with a session-backed one. The access/refresh tokens live here, separately from the
+     * {@code SecurityContext} that {@code HttpSession} already persists to MariaDB; without this
+     * override, identity would survive a redeploy but every {@code /api/**}/{@code /whoami} call
+     * afterward would throw {@code ClientAuthorizationRequiredException} and silently bounce the
+     * user back through Keycloak login.
+     *
+     * @return a session-backed authorized-client store instead of Boot's in-memory default.
+     */
+    @Bean
+    public OAuth2AuthorizedClientRepository authorizedClientRepository() {
+        return new HttpSessionOAuth2AuthorizedClientRepository();
+    }
+
+    /**
      * Configures the security filter chain: session-cookie login against Keycloak (with PKCE
      * even though the client is confidential, matching current OAuth 2.1 guidance), CSRF
      * protection using the standard SPA cookie recipe, a plain 401 (rather than a redirect) for
@@ -150,20 +170,29 @@ public class SecurityConfig {
      *                             successful logout (the two cases need the exact same value: the
      *                             SPA's own origin) — see the property's own comment in
      *                             {@code application.yml}.
+     * @param cookieSerializer writes the {@code SESSION} cookie, reused by
+     *                         {@link SessionCookieRefreshFilter} to re-issue it on every request.
      * @return the configured {@link SecurityFilterChain}.
      * @throws Exception if the security configuration cannot be built.
      */
     @Bean
     public SecurityFilterChain filterChain(
             HttpSecurity http, ClientRegistrationRepository clientRegistrationRepository,
-            @Value("${dlb.bff.post-login-redirect-url:/}") String postLoginRedirectUrl)
+            @Value("${dlb.bff.post-login-redirect-url:/}") String postLoginRedirectUrl,
+            CookieSerializer cookieSerializer)
             throws Exception {
 
         OidcClientInitiatedLogoutSuccessHandler logoutSuccessHandler =
                 new OidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository);
-        // Not "{baseUrl}/" — same reasoning as postLoginRedirectUrl above: that would land the
-        // browser on this BFF's own port locally, instead of back on the SPA's dev server.
-        logoutSuccessHandler.setPostLogoutRedirectUri(postLoginRedirectUrl);
+        // Unlike postLoginRedirectUrl's plain 302 (which the browser resolves relative to its own
+        // origin), this is sent as a literal post_logout_redirect_uri to Keycloak, which requires
+        // an exact match against a registered absolute URI — plain "/" fails with "Invalid
+        // redirect uri". If postLoginRedirectUrl is still its default "/" (same-origin
+        // deployments), "{baseUrl}" resolves to the right origin via forwarded headers instead. If
+        // it's been overridden (two-origin local dev, BFF and SPA dev server on different ports),
+        // "{baseUrl}" would resolve to this BFF's own origin — wrong — so reuse that override as-is.
+        logoutSuccessHandler.setPostLogoutRedirectUri(
+                "/".equals(postLoginRedirectUrl) ? "{baseUrl}/" : postLoginRedirectUrl);
 
         // Spring only adds PKCE automatically for public clients (ClientAuthenticationMethod.NONE);
         // this BFF's client is confidential, but current OAuth 2.1 guidance is to use PKCE for
@@ -220,6 +249,12 @@ public class SecurityConfig {
         // ones that read CsrfToken explicitly — otherwise XSRF-TOKEN never appears for the client
         // to read on its first, unauthenticated page load. Matches Spring's documented SPA recipe.
         http.addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class);
+
+        // Re-issues the SESSION cookie on every request so its Max-Age keeps sliding forward like
+        // the server-side session's own inactivity timeout does — Spring Session otherwise only
+        // writes that cookie once, at session creation, so it would hard-expire regardless of how
+        // active the user stayed.
+        http.addFilterAfter(new SessionCookieRefreshFilter(cookieSerializer), CsrfCookieFilter.class);
 
         return http.build();
     }
@@ -294,6 +329,31 @@ public class SecurityConfig {
             CsrfToken csrfToken = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
             if (csrfToken != null) {
                 csrfToken.getToken();
+            }
+            filterChain.doFilter(request, response);
+        }
+    }
+
+    /**
+     * See the filter chain's own comment. Uses {@code getSession(false)}: never creates a session
+     * just to set this cookie on an anonymous request.
+     */
+    private static final class SessionCookieRefreshFilter extends OncePerRequestFilter {
+
+        private final CookieSerializer cookieSerializer;
+
+        SessionCookieRefreshFilter(CookieSerializer cookieSerializer) {
+            this.cookieSerializer = cookieSerializer;
+        }
+
+        @Override
+        protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+                                         FilterChain filterChain)
+                throws ServletException, IOException {
+            HttpSession session = request.getSession(false);
+            if (session != null) {
+                cookieSerializer.writeCookieValue(
+                        new CookieSerializer.CookieValue(request, response, session.getId()));
             }
             filterChain.doFilter(request, response);
         }

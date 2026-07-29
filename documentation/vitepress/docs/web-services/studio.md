@@ -16,6 +16,14 @@ npm run preview  # preview production build locally
 
 The dev server proxies `/api`, `/oauth2`, `/login`, `/logout`, `/whoami`, and `/actuator` to the BFF, so during local development the BFF (see [BFF Service](/web-services/bff-service)) needs to be running alongside it.
 
+## Local development setups
+
+The repository's top-level `infrastructure/docker/compose.yml` supports three local setups, matching what a given change actually needs:
+
+1. **Web service only** — run `docker compose up -d` (supporting services only: MariaDB, phpMyAdmin, Keycloak) and run the Web Service separately, e.g. `./gradlew bootRun` in `apps/api`.
+2. **Studio development** — run `docker compose --profile api up -d` (also builds and starts the Web Service and the BFF), then run Studio itself separately with `npm run dev` as shown above. Its dev-server proxy sends `/api`, `/oauth2`, `/login`, `/logout`, `/whoami`, and `/actuator` to the Dockerized BFF on `http://localhost:8082`, so the browser only ever talks to Vite's own origin — same-origin without needing a real reverse proxy.
+3. **Everything in Docker** — run `docker compose --profile client up -d`. Studio and the BFF both run as containers here too, fronted by an `nginx` service on `http://localhost:8080` that path-splits requests between them (`client.conf`), mirroring how a real deployment's reverse proxy makes them same-origin. Vite's dev-server proxy isn't available in this setup (nothing is running `npm run dev`), so this nginx service is what takes its place. Useful for testing the full containerized topology before deploying, without needing a real deployment to do it. If you already had a local Keycloak volume from before this third profile was added, `keycloak-sync` adds this profile's `http://localhost:8080/...` redirect/post-logout URIs to the existing `dlb-bff` client automatically on the next `docker compose up` — no volume reset or manual admin-console edit needed.
+
 ## Features
 
 * **Dialogue rendering** — Once logged in, Studio lets you select a Dialogue Branch Project and start executing one of its dialogues, rendered either as chat "balloons" or as plain text, switchable via a mode selector.

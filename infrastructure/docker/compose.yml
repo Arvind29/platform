@@ -6,10 +6,25 @@
 #   docker compose up -d                              # supporting services only
 #   docker compose --profile api up -d                # also build and run the API and the BFF
 #   docker compose --profile variable-service up -d   # also build and run the mock variable service
+#   docker compose --profile client up -d             # everything containerized: API, BFF, web
+#                                                      # client, and a proxy in front, mirroring a
+#                                                      # real deployment (see issue #81)
+#
+# Three local development setups, matching what a given change actually needs:
+#
+#   1. Web service only: this file with no profile, run the API separately (e.g. `./gradlew
+#      bootRun` in apps/api).
+#   2. Web client development: `--profile api` (API + BFF in Docker), run the web client
+#      separately (`npm run dev` in apps/web) — its vite.config.js dev-server proxy sends
+#      /api, /oauth2, /login, /logout, /whoami, /actuator to the Dockerized BFF on
+#      http://localhost:8082, so the browser only ever talks to Vite's own origin.
+#   3. Everything in Docker (`--profile client`): the web client and BFF run as containers too,
+#      fronted by the `nginx` service below on http://localhost:8080 — since Vite's dev-server
+#      proxy isn't available here, this proxy is what makes the (containerized) web client and
+#      BFF same-origin instead, the same way a production reverse proxy would.
 #
 # The web client (apps/web) authenticates through the BFF, not Keycloak directly — see
-# apps/bff's Javadoc and the web client's vite.config.js dev-server proxy. --profile api starts
-# both, since developing the web client locally needs both anyway.
+# apps/bff's Javadoc.
 
 name: dlb-dev
 
@@ -134,6 +149,7 @@ services:
       dockerfile: apps/api/Dockerfile
     profiles:
       - api
+      - client
     container_name: dlb-dev-api
     environment:
       DLB_AUTH_KEYCLOAK_BASE_URL: http://keycloak:8080/
@@ -175,12 +191,86 @@ services:
       # The web client's own dev server (npm run dev), a different origin than this BFF — see
       # the property's own comment in apps/bff's application.yml for why this can't just be "/".
       DLB_BFF_POST_LOGIN_REDIRECT_URL: http://localhost:5173/
+      DLB_BFF_MARIADB_HOST: mariadb
+      DLB_BFF_MARIADB_PASSWORD: dev
+      DLB_BFF_SESSION_TIMEOUT: 7d
     ports:
       - "8082:8082"
     depends_on:
       keycloak-sync:
         condition: service_completed_successfully
       dlb-web-service:
+        condition: service_started
+      mariadb:
+        condition: service_healthy
+
+  # ---------------------------------------------------------------------------
+  # "client" profile — everything containerized (issue #81)
+  #
+  # A second BFF instance and the web client itself, both fronted by nginx below on
+  # http://localhost:8080, the single origin a browser talks to for this profile. Not exposed on
+  # their own host ports — only nginx is a genuine entry point here, matching a real deployment.
+  # ---------------------------------------------------------------------------
+
+  # A separate instance from `bff` above (same dlb-bff Keycloak client and secret, just a second
+  # running container) rather than reusing it: that one's DLB_BFF_POST_LOGIN_REDIRECT_URL is
+  # hardcoded to Vite's dev-server origin, which only works because Vite's proxy rewrites the
+  # Host header it forwards (see vite.config.js's changeOrigin: true), hiding the browser's real
+  # origin from the BFF entirely. nginx's client.conf does the opposite on purpose — it preserves
+  # the real Host header — so this instance can (and must) leave DLB_BFF_POST_LOGIN_REDIRECT_URL
+  # unset: its default, a relative "/", already resolves correctly against whatever origin the
+  # browser actually used (see application.yml's own comment on that default), exactly like a real
+  # deployment.
+  bff-client:
+    build:
+      context: ../..
+      dockerfile: apps/bff/Dockerfile
+    profiles:
+      - client
+    container_name: dlb-dev-bff-client
+    environment:
+      DLB_BFF_KEYCLOAK_BASE_URL: http://keycloak:8080/
+      DLB_BFF_KEYCLOAK_BROWSER_BASE_URL: http://localhost:8081/
+      DLB_BFF_API_BASE_URL: http://dlb-web-service:8089/dlb-web-service
+      DLB_BFF_OAUTH2_CLIENT_SECRET: dev-secret
+      DLB_BFF_MARIADB_HOST: mariadb
+      DLB_BFF_MARIADB_PASSWORD: dev
+      DLB_BFF_SESSION_TIMEOUT: 7d
+    depends_on:
+      keycloak-sync:
+        condition: service_completed_successfully
+      dlb-web-service:
+        condition: service_started
+      mariadb:
+        condition: service_healthy
+
+  # The web client's own static build (apps/web/Dockerfile) — its default build args already talk
+  # to the BFF via same-origin relative paths (/api/v1 etc.), which is exactly what nginx below
+  # provides, so nothing needs overriding here.
+  web:
+    build:
+      context: ../..
+      dockerfile: apps/web/Dockerfile
+    profiles:
+      - client
+    container_name: dlb-dev-web
+
+  # Single entry point for this profile — path-splits between `web` (the static SPA) and
+  # `bff-client` (everything the SPA can't serve itself), so they appear to the browser as one
+  # origin. See client.conf for the exact path list and why Host must be preserved, not rewritten.
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: dlb-dev-nginx
+    profiles:
+      - client
+    volumes:
+      - ./nginx/client.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "8080:80"
+    depends_on:
+      web:
+        condition: service_started
+      bff-client:
         condition: service_started
 
   # ---------------------------------------------------------------------------
