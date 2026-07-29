@@ -9,6 +9,8 @@
 #   dlb.bff.api-base-url                  → DLB_BFF_API_BASE_URL
 #   dlb.bff.web-service-client-id         → DLB_BFF_WEB_SERVICE_CLIENT_ID
 #   dlb.bff.post-login-redirect-url       → DLB_BFF_POST_LOGIN_REDIRECT_URL
+#   dlb.bff.mariadb.host                  → DLB_BFF_MARIADB_HOST
+#   dlb.bff.mariadb.password              → DLB_BFF_MARIADB_PASSWORD
 #
 # The keycloak ClientRegistration itself is built by hand in SecurityConfig from these same
 # properties, not auto-configured from spring.security.oauth2.client.* — see its Javadoc for why
@@ -25,6 +27,26 @@ server:
   # instead of http://, matching the https-only redirect URIs registered in Keycloak. No-op when
   # there's no reverse proxy in front (e.g. local development).
   forward-headers-strategy: framework
+
+spring:
+  # Persists sessions to MariaDB instead of this JVM's heap, so a redeploy (or, eventually, more
+  # than one replica behind a load balancer without sticky sessions) doesn't silently drop every
+  # signed-in user's session — see SecurityConfig's own Javadoc for why that matters. A dedicated
+  # database, not dlb-web-service's own "dialoguebranch" one: this service otherwise owns no
+  # persistent data at all, and Spring Session's own tables (SPRING_SESSION*) have nothing to do
+  # with that service's Flyway-managed schema.
+  datasource:
+    url: jdbc:mariadb://${dlb.bff.mariadb.host}:${dlb.bff.mariadb.port}/${dlb.bff.mariadb.database}?createDatabaseIfNotExist=true
+    username: ${dlb.bff.mariadb.user}
+    password: ${dlb.bff.mariadb.password}
+    driver-class-name: org.mariadb.jdbc.Driver
+  session:
+    store-type: jdbc
+    # Spring Session's own SPRING_SESSION/SPRING_SESSION_ATTRIBUTES tables, not this service's own
+    # schema (it has none) — "always" because the default of "embedded" only auto-creates them
+    # against an in-memory test database, never a real one like this.
+    jdbc:
+      initialize-schema: always
 
 dlb:
   bff:
@@ -71,6 +93,15 @@ dlb:
     # dialoguebranch-realm.json's __BFF_POST_LOGOUT_REDIRECT_URI__ placeholder) — Keycloak
     # rejects end_session_endpoint calls with an unregistered redirect target.
     post-login-redirect-url: ${DLB_BFF_POST_LOGIN_REDIRECT_URL:/}
+    # ---- Session storage (see the spring.datasource/spring.session block above) ----
+    mariadb:
+      host: localhost
+      port: 3306
+      user: root
+      # Default matches infrastructure/docker/compose.yml. Override with DLB_BFF_MARIADB_PASSWORD
+      # in production.
+      password: dev
+      database: dlb_bff_sessions
 
 management:
   endpoints:

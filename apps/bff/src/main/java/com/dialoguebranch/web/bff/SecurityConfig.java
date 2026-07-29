@@ -43,7 +43,9 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.client.web.HttpSessionOAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestCustomizers;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -74,8 +76,10 @@ import java.util.function.Supplier;
 /**
  * Session-cookie auth for the Dialogue Branch web client: this service performs the Authorization
  * Code + PKCE exchange against Keycloak and keeps the resulting access/refresh token
- * server-side, in the HTTP session (in-memory — single instance is sufficient for this service's
- * scope). The browser only ever holds the {@code JSESSIONID} cookie, never a raw token.
+ * server-side, in the HTTP session (persisted to MariaDB via Spring Session — see
+ * {@code application.yml}'s {@code spring.datasource}/{@code spring.session} block — rather than
+ * this JVM's own heap, so a redeploy doesn't silently drop every signed-in user's session). The
+ * browser only ever holds the {@code JSESSIONID} cookie, never a raw token.
  *
  * <p>Mirrors the Backend-for-Frontend pattern already in production use for the Lizz platform's
  * own web clients (see the {@code apps/bff} module in the {@code connectedcare-nl/lizz}
@@ -137,6 +141,32 @@ public class SecurityConfig {
     }
 
     /**
+     * Overrides Spring Boot's own default {@link OAuth2AuthorizedClientRepository} —
+     * {@code InMemoryOAuth2AuthorizedClientService}, a plain JVM heap map, wired in automatically
+     * whenever a {@link ClientRegistrationRepository} bean exists (as this class's own one above
+     * does) and no {@link OAuth2AuthorizedClientRepository}/{@link OAuth2AuthorizedClientManager}
+     * bean is otherwise defined — with this session-backed one instead.
+     *
+     * <p>Easy to miss: the access/refresh token pair itself (what {@link WhoAmIController} and
+     * {@link ApiProxyController} actually need on every request) is stored here, entirely
+     * separately from the {@code SecurityContext} (identity) that {@code HttpSession} already
+     * persists to MariaDB via Spring Session (see {@code application.yml}'s
+     * {@code spring.datasource}/{@code spring.session} block, and this class's own top-level
+     * Javadoc). Leaving Boot's in-memory default in place would mean a user's identity survives a
+     * redeploy, but every subsequent {@code /api/**} or {@code /whoami} call would then throw
+     * {@link org.springframework.security.oauth2.client.ClientAuthorizationRequiredException} —
+     * silently bounced back through a fresh Keycloak login despite still holding a "valid"
+     * session, rather than a clean, honest 401. Storing the token pair in the {@code HttpSession}
+     * instead — the same one Spring Session already persists — closes that gap for free.</p>
+     *
+     * @return a session-backed authorized-client store instead of Boot's in-memory default.
+     */
+    @Bean
+    public OAuth2AuthorizedClientRepository authorizedClientRepository() {
+        return new HttpSessionOAuth2AuthorizedClientRepository();
+    }
+
+    /**
      * Configures the security filter chain: session-cookie login against Keycloak (with PKCE
      * even though the client is confidential, matching current OAuth 2.1 guidance), CSRF
      * protection using the standard SPA cookie recipe, a plain 401 (rather than a redirect) for
@@ -161,9 +191,22 @@ public class SecurityConfig {
 
         OidcClientInitiatedLogoutSuccessHandler logoutSuccessHandler =
                 new OidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository);
-        // Not "{baseUrl}/" — same reasoning as postLoginRedirectUrl above: that would land the
-        // browser on this BFF's own port locally, instead of back on the SPA's dev server.
-        logoutSuccessHandler.setPostLogoutRedirectUri(postLoginRedirectUrl);
+        // Unlike postLoginRedirectUrl's plain 302 Location header (which the browser resolves
+        // against its own current origin regardless of what's written here), this value is sent
+        // as a literal post_logout_redirect_uri query parameter to Keycloak's end_session_endpoint,
+        // which requires an exact match against one of the client's registered absolute redirect
+        // URIs — a relative "/" never matches, and logout fails with "Invalid redirect uri".
+        //
+        // When postLoginRedirectUrl is still its unoverridden default ("/", meaning same-origin
+        // deployments: this "client" Compose profile, or production behind HAProxy),
+        // OidcClientInitiatedLogoutSuccessHandler's own "{baseUrl}" placeholder support resolves
+        // to the correct absolute origin instead, honoring X-Forwarded-Host/Proto the same way
+        // forward-headers-strategy: framework already does elsewhere. When it's been explicitly
+        // overridden (the two-origin local dev flow: this BFF on its own port, the SPA dev server
+        // on a different one), "{baseUrl}" would resolve to *this BFF's own* origin instead of the
+        // dev server's — wrong, so that override is reused verbatim, unchanged from before.
+        logoutSuccessHandler.setPostLogoutRedirectUri(
+                "/".equals(postLoginRedirectUrl) ? "{baseUrl}/" : postLoginRedirectUrl);
 
         // Spring only adds PKCE automatically for public clients (ClientAuthenticationMethod.NONE);
         // this BFF's client is confidential, but current OAuth 2.1 guidance is to use PKCE for

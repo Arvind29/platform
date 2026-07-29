@@ -692,7 +692,8 @@
       "clientAuthenticatorType": "client-secret",
       "secret": "dev-secret",
       "redirectUris": [
-        "__BFF_REDIRECT_URI__"
+        "__BFF_REDIRECT_URI__",
+        "http://localhost:8080/login/oauth2/code/keycloak"
       ],
       "webOrigins": [],
       "notBefore": 0,
@@ -711,7 +712,7 @@
         "oidc.ciba.grant.enabled": "false",
         "backchannel.logout.session.required": "true",
         "standard.token.exchange.enabled": "false",
-        "post.logout.redirect.uris": "__BFF_POST_LOGOUT_REDIRECT_URI__",
+        "post.logout.redirect.uris": "__BFF_POST_LOGOUT_REDIRECT_URI__##http://localhost:8080/",
         "oauth2.device.authorization.grant.enabled": "false",
         "backchannel.logout.revoke.offline.tokens": "false"
       },

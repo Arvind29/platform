@@ -33,7 +33,7 @@ The BFF is configured through `dlb.bff.*` properties (see `apps/bff/src/main/res
 
 ## Local Development
 
-Running `docker compose --profile api up` (see the repository's top-level `infrastructure/docker/compose.yml`) builds and starts the BFF alongside the Web Service, since developing Studio locally needs both.
+Running `docker compose --profile api up` (see the repository's top-level `infrastructure/docker/compose.yml`) builds and starts the BFF alongside the Web Service, since developing Studio locally needs both. A `--profile client` setup also exists, containerizing Studio and the BFF themselves behind a proxy — see [Studio's local development setups](/web-services/studio#local-development-setups) for all three.
 
 ::: info Note
 If you found errors or have questions about this page, please consider reporting an issue at https://github.com/dialoguebranch/platform or sending an email to info@dialoguebranch.com.
