@@ -36,11 +36,20 @@ docker compose up -d
 
 This starts MariaDB, phpMyAdmin, and Keycloak with hard-coded dev credentials. No configuration files are required.
 
-To also build and run the API in Docker (useful when working on the web client only):
+To also build and run the API in Docker (useful when working on Studio only):
 
 ```bash
 docker compose --profile api up -d
 ```
+
+To run everything in Docker — API, Studio, Backend For Frontend (BFF), and a reverse proxy in front, mirroring a real
+deployment:
+
+```bash
+docker compose --profile client up -d
+```
+
+Studio is then available at [http://localhost:8080](http://localhost:8080).
 
 ### 2. Run the API
 
@@ -52,7 +61,7 @@ cd apps/api
 The API starts on [http://localhost:8089/dlb-web-service](http://localhost:8089/dlb-web-service).  
 Swagger UI: [http://localhost:8089/dlb-web-service/swagger-ui.html](http://localhost:8089/dlb-web-service/swagger-ui.html)
 
-### 3. Run the web client
+### 3. Run Studio
 
 ```bash
 cd apps/web
@@ -60,7 +69,7 @@ npm install   # first time only
 npm run dev
 ```
 
-The web client starts on [http://localhost:5173](http://localhost:5173).
+Studio starts on [http://localhost:5173](http://localhost:5173).
 
 ### Local services
 
@@ -101,6 +110,11 @@ manual copy/paste required.
 1. Expand the **Variables** section and click `GET /variables/get`.
 2. Click **Try it out**, set `timeZone` to your local time zone (e.g. `Europe/Amsterdam`), then click **Execute**.
 3. You should get a `200` response with an empty list – no variables stored yet.
+
+#### 4. Log in to Studio
+
+2. Open Studio at [localhost:5173](http://localhost:5173) or [localhost:8080](http://localhost:8080) and sign in with `testuser` / `password`.
+3. You should land on the project selector – this confirms the BFF and proxy are working.
 
 ## Individual Packages & Apps
 
