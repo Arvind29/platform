@@ -7,6 +7,8 @@ and this project adheres to a single monorepo-wide version declared in `global.j
 
 ## [Unreleased]
 
+## [2.0.5] - 2026-07-29
+
 ### Added
 
 - Added a Backend-for-Frontend (BFF) service (`apps/bff`) between the web client and Keycloak/the
