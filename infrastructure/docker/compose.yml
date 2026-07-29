@@ -193,6 +193,7 @@ services:
       DLB_BFF_POST_LOGIN_REDIRECT_URL: http://localhost:5173/
       DLB_BFF_MARIADB_HOST: mariadb
       DLB_BFF_MARIADB_PASSWORD: dev
+      DLB_BFF_SESSION_TIMEOUT: 7d
     ports:
       - "8082:8082"
     depends_on:
@@ -234,6 +235,7 @@ services:
       DLB_BFF_OAUTH2_CLIENT_SECRET: dev-secret
       DLB_BFF_MARIADB_HOST: mariadb
       DLB_BFF_MARIADB_PASSWORD: dev
+      DLB_BFF_SESSION_TIMEOUT: 7d
     depends_on:
       keycloak-sync:
         condition: service_completed_successfully
