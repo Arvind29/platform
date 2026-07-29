@@ -9,6 +9,37 @@ and this project adheres to a single monorepo-wide version declared in `global.j
 
 ## [2.0.6] - 2026-07-29
 
+### Added
+
+- Added a `client` Docker Compose profile (`infrastructure/docker/compose.yml`) that containerizes
+  the web client and BFF behind a new nginx reverse proxy (`infrastructure/docker/nginx/client.conf`),
+  mirroring a real deployment ([#81](https://github.com/dialoguebranch/platform/issues/81)). This
+  gives a third local development setup, alongside the existing two: `docker compose --profile
+  client up -d` runs everything (API, web client, BFF, proxy) in Docker on a single origin,
+  `http://localhost:8080`, with no separate dev server needed.
+- The BFF (`apps/bff`) now persists sessions to MariaDB via Spring Session, instead of the JVM's
+  own heap, so a redeploy no longer silently logs out every signed-in user. This includes the
+  `OAuth2AuthorizedClient` holding the session's access/refresh token, which Spring Boot's default
+  wiring keeps separately from the session itself and would otherwise still be lost on redeploy.
+  The session inactivity timeout (also driving the `SESSION` cookie's `Max-Age`) is now configurable
+  via `dlb.bff.session-timeout` (`DLB_BFF_SESSION_TIMEOUT`), defaulting to 7 days instead of Spring
+  Boot's own 30-minute default. The cookie is re-issued on every request so it slides forward with
+  activity instead of hard-expiring on a fixed clock from login.
+- `infrastructure/keycloak/sync-realm.py` now also reconciles redirect/post-logout URIs on Keycloak
+  clients that already exist, not just clients that are entirely missing. Previously, a change like
+  the `client` profile's new origin never reached a developer's already-provisioned local Keycloak
+  without manually resetting the MariaDB volume.
+
+### Fixed
+
+- Fixed BFF logout failing with Keycloak's "Invalid redirect uri" for same-origin deployments (the
+  new `client` profile, and production behind a reverse proxy). The BFF sent `post_logout_redirect_uri`
+  to Keycloak as a literal relative `/`, which Keycloak's `end_session_endpoint` rejects since it
+  requires an absolute, registered URI. This differs from the login-success redirect, which a
+  browser resolves relative to its own current origin regardless. Now resolves via `OidcClientInitiatedLogoutSuccessHandler`'s
+  `{baseUrl}` placeholder when the redirect URL is left at its default, honoring the reverse proxy's
+  forwarded headers.
+
 ## [2.0.5] - 2026-07-29
 
 ### Added
