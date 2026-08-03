@@ -2,6 +2,8 @@
 
 `apps/bff` is a small Spring Boot [Backend-for-Frontend](https://samnewman.io/patterns/architecture/bff/) service that sits between [Dialogue Branch Studio](/web-services/studio) (`apps/web`) and the Web Service. It exists so that the browser never has to hold an OAuth2 access or refresh token: the token lives server-side, in the BFF's HTTP session, and the browser only ever holds a `JSESSIONID` session cookie. See [Studio Authentication (via the BFF)](/web-services/authentication#studio-authentication-via-the-bff) for the full request flow, with diagrams.
 
+Sessions are persisted to a dedicated MariaDB database (`dlb_bff_sessions` by default) rather than kept in the JVM's own memory, so a redeploy of the BFF doesn't silently drop every signed-in user. This is a separate database from the Web Service's own — the BFF otherwise owns no persistent data of its own.
+
 Unlike the Web Service, the BFF is deployed as a plain executable JAR (not a WAR), listening on port `8082` by default. It can also be built as a Docker image using the provided `Dockerfile` at `apps/bff/Dockerfile` (built from the repository root, since the Docker build context spans both `apps/bff/` and the rest of the monorepo).
 
 ```bash
@@ -30,6 +32,8 @@ The BFF is configured through `dlb.bff.*` properties (see `apps/bff/src/main/res
 * `dlb.bff.api-base-url` — the internal address of the Web Service that `/api/**` calls are proxied to.
 * `dlb.bff.web-service-client-id` — the Keycloak client id (`dlb-web-service`) whose `resource_access` roles `/whoami` reads for the current user.
 * `dlb.bff.post-login-redirect-url` — where the browser is sent after a successful login or logout; the web client's own origin (e.g. its Vite dev server address in local development, or "/" behind a same-origin reverse proxy in production).
+* `dlb.bff.session-timeout` — how long an inactive session (and its cookie) stays valid, e.g. `7d` (the default). Drives both the server-side session timeout and the `JSESSIONID` cookie's `max-age`, so they can't drift apart.
+* `dlb.bff.mariadb.host` / `dlb.bff.mariadb.port` / `dlb.bff.mariadb.user` / `dlb.bff.mariadb.password` / `dlb.bff.mariadb.database` — connection details for the MariaDB database sessions are persisted to (`dlb_bff_sessions` by default; see [Local Development](#local-development) below).
 
 ## Local Development
 
