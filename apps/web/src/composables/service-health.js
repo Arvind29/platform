@@ -65,13 +65,24 @@ async function fetchApiStatus(url) {
  *   the login redirect at least lands somewhere real, and any actual Keycloak-side outage will
  *   surface at that point the same way a broken third-party login page always would.
  *
- * @returns {Promise<{apiUp: boolean, authUp: boolean, serviceVersion: (string|null)}>}
+ * @returns {Promise<{apiUp: boolean, authUp: boolean, apiUrl: string, authUrl: string, serviceVersion: (string|null)}>}
  */
 export async function checkServicesHealth() {
+    const apiUrl = config.baseUrl + '/info/all';
+    const authUrl = '/actuator/health';
     const [apiStatus, authUp] = await Promise.all([
-        fetchApiStatus(config.baseUrl + '/info/all'),
-        isReachable('/actuator/health'),
+        fetchApiStatus(apiUrl),
+        isReachable(authUrl),
     ]);
 
-    return { apiUp: apiStatus.up, authUp, serviceVersion: apiStatus.serviceVersion };
+    // Resolved to absolute URLs (against the browser's own origin) purely for display on
+    // ServiceStatusPage.vue — both calls above are made as same-origin relative paths, see this
+    // function's own doc comment for why.
+    return {
+        apiUp: apiStatus.up,
+        authUp,
+        apiUrl: new URL(apiUrl, window.location.origin).href,
+        authUrl: new URL(authUrl, window.location.origin).href,
+        serviceVersion: apiStatus.serviceVersion,
+    };
 }

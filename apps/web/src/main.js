@@ -48,8 +48,12 @@ async function bootstrap() {
     // to only the "not logged in yet" case.
     const health = await checkServicesHealth();
     if (!health.apiUp || !health.authUp) {
-        createApp(ServiceStatusPage, { apiUp: health.apiUp, authUp: health.authUp })
-            .mount('#app');
+        createApp(ServiceStatusPage, {
+            apiUp: health.apiUp,
+            authUp: health.authUp,
+            apiUrl: health.apiUrl,
+            authUrl: health.authUrl,
+        }).mount('#app');
         return;
     }
 

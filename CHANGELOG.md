@@ -14,6 +14,8 @@ and this project adheres to a single monorepo-wide version declared in `global.j
 - The visual dialogue editor's node body field now has a right-click menu for inserting Dialogue
   Branch statements (reply options, `<<set>>`, `<<if>>`/`<<elseif>>`/`<<else>>`, `<<random>>`,
   `<<action>>`, and all `<<input>>` types) at the cursor, instead of writing the raw syntax by hand.
+- The "Service Unavailable" screen's status icons now show the exact URL each reachability check
+  hit, on hover, to make it easier to tell which backend a failure is actually pointing at.
 
 ## [2.0.6] - 2026-07-29
 

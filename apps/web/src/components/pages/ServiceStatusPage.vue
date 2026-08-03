@@ -4,6 +4,8 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 defineProps({
     apiUp: { type: Boolean, default: false },
     authUp: { type: Boolean, default: false },
+    apiUrl: { type: String, default: null },
+    authUrl: { type: String, default: null },
 });
 
 function retry() {
@@ -26,6 +28,7 @@ function retry() {
                     <FontAwesomeIcon
                         :icon="apiUp ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-xmark'"
                         :class="apiUp ? 'text-green-600' : 'text-red-500'"
+                        :title="apiUrl"
                     />
                     Dialogue Branch API
                 </li>
@@ -33,6 +36,7 @@ function retry() {
                     <FontAwesomeIcon
                         :icon="authUp ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-xmark'"
                         :class="authUp ? 'text-green-600' : 'text-red-500'"
+                        :title="authUrl"
                     />
                     Authentication service
                 </li>
