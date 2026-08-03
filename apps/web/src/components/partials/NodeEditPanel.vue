@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, inject } from 'vue';
+import { ref, watch, inject, nextTick, useTemplateRef } from 'vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { useClient } from '@/composables/client.js';
 import { describeError } from '@/composables/error-message.js';
@@ -166,6 +166,102 @@ function referenceDialogueCount(references) {
     return new Set((references ?? []).map((r) => r.dialogueName)).size;
 }
 
+// ---- Body right-click "insert statement" menu ----
+//
+// Every entry's `template` mirrors the minimal textual form Dialogue Branch scripts actually use
+// (see the core library's Command subclasses' toString()/parse() pairs) — e.g. InputCommand's
+// TYPE_* constants for the `type="..."` attribute, or RandomCommand's <<random>>/<<or>>/<<endrandom>>
+// clause structure. A `{{placeholder}}` marks the part of the snippet a user most likely wants to
+// edit immediately; only the first one is auto-selected after insertion, the rest are just left as
+// plain text for the user to find themselves.
+const INSERT_MENU = [
+    {
+        label: 'Reply',
+        items: [
+            { label: 'Reply option', template: '[[{{Reply text}}|TargetNode]]' },
+            { label: 'Reply with variable set', template: '[[{{Reply text}}|TargetNode|<<set $variable = value>>]]' },
+        ],
+    },
+    { label: 'Set variable', template: '<<set ${{variable}} = value>>' },
+    {
+        label: 'Conditional',
+        items: [
+            { label: 'If / Endif', template: '<<if ${{variable}}>>\n  \n<<endif>>' },
+            { label: 'If / Else / Endif', template: '<<if ${{variable}}>>\n  \n<<else>>\n  \n<<endif>>' },
+            { label: 'If / Elseif / Else / Endif', template: '<<if ${{variable}}>>\n  \n<<elseif $variable2>>\n  \n<<else>>\n  \n<<endif>>' },
+        ],
+    },
+    { label: 'Random options', template: '<<random>>\n  {{Option A text}}\n<<or>>\n  Option B text\n<<endrandom>>' },
+    {
+        label: 'Action',
+        items: [
+            { label: 'Generic', template: '<<action type="generic" value="{{ACTION_NAME}}">>' },
+            { label: 'Image', template: '<<action type="image" value="{{https://example.com/image.png}}">>' },
+            { label: 'Video', template: '<<action type="video" value="{{https://example.com/video.mp4}}">>' },
+            { label: 'Link', template: '<<action type="link" value="{{https://example.com}}">>' },
+        ],
+    },
+    {
+        label: 'User input',
+        items: [
+            { label: 'Text', template: '<<input type="text" value="${{variable}}">>' },
+            { label: 'Long text', template: '<<input type="longtext" value="${{variable}}">>' },
+            { label: 'Numeric', template: '<<input type="numeric" value="${{variable}}">>' },
+            { label: 'Email', template: '<<input type="email" value="${{variable}}">>' },
+            { label: 'Time', template: '<<input type="time" value="${{variable}}">>' },
+            { label: 'Multiple choice', template: '<<input type="set" value1="${{variable1}}" option1="{{Option 1}}" value2="$variable2" option2="Option 2">>' },
+        ],
+    },
+];
+
+const bodyTextarea = useTemplateRef('body-textarea');
+const contextMenu = ref(null); // { x, y } in viewport coordinates, or null when closed
+
+// Captured on right-click rather than re-read from the textarea when a menu item is clicked:
+// clicking a menu button moves focus away from the textarea, but browsers keep its
+// selectionStart/selectionEnd around across a blur, so either would work — this just avoids
+// depending on that.
+let insertStart = 0;
+let insertEnd = 0;
+
+function onBodyContextMenu(event) {
+    event.preventDefault();
+    const textarea = bodyTextarea.value;
+    insertStart = textarea.selectionStart;
+    insertEnd = textarea.selectionEnd;
+    // Roughly the menu's own footprint, just enough to keep it from opening off-screen.
+    const MENU_WIDTH = 224;
+    const MENU_HEIGHT = 260;
+    contextMenu.value = {
+        x: Math.min(event.clientX, window.innerWidth - MENU_WIDTH - 8),
+        y: Math.min(event.clientY, window.innerHeight - MENU_HEIGHT - 8),
+    };
+}
+
+function closeContextMenu() {
+    contextMenu.value = null;
+}
+
+function insertSnippet(template) {
+    const textarea = bodyTextarea.value;
+    const firstPlaceholder = template.match(/\{\{(.*?)\}\}/);
+    const plain = template.replace(/\{\{(.*?)\}\}/g, '$1');
+    body.value = body.value.slice(0, insertStart) + plain + body.value.slice(insertEnd);
+    closeContextMenu();
+    nextTick(() => {
+        textarea.focus();
+        if (firstPlaceholder) {
+            // Safe to use firstPlaceholder.index as-is: it's the position of the *first*
+            // placeholder, so nothing before it in `template` had braces stripped yet.
+            const selStart = insertStart + firstPlaceholder.index;
+            textarea.setSelectionRange(selStart, selStart + firstPlaceholder[1].length);
+        } else {
+            const pos = insertStart + plain.length;
+            textarea.setSelectionRange(pos, pos);
+        }
+    });
+}
+
 // Lets DialogueEditor.vue's onNodeClick refuse to swap the selected node — which would silently
 // discard this panel's in-progress edits — while a save for the current node is still in flight.
 defineExpose({
@@ -234,10 +330,12 @@ defineExpose({
                     <div>
                         <label class="block font-title font-bold text-sm text-orange-darker mb-1">Body</label>
                         <textarea
+                            ref="body-textarea"
                             v-model="body"
                             rows="10"
                             placeholder="Node body script..."
                             class="w-full px-3 py-2 border border-grey-light rounded-lg text-xs font-mono focus:outline-none focus:border-orange-dark resize-y"
+                            @contextmenu="onBodyContextMenu"
                         ></textarea>
                     </div>
                 </div>
@@ -346,5 +444,38 @@ defineExpose({
                 </div>
             </div>
         </div>
+
+        <!-- Body "insert statement" context menu (right-click inside the Body textarea) -->
+        <template v-if="contextMenu">
+            <div class="fixed inset-0 z-[10040]" @click="closeContextMenu" @contextmenu.prevent="closeContextMenu"></div>
+            <div
+                class="fixed z-[10050] w-56 bg-white rounded-lg shadow-2xl border border-grey-light py-1 font-title text-sm"
+                :style="{ top: contextMenu.y + 'px', left: contextMenu.x + 'px' }"
+            >
+                <div v-for="entry in INSERT_MENU" :key="entry.label" class="relative group">
+                    <button
+                        v-if="entry.template"
+                        type="button"
+                        class="w-full px-3 py-1.5 text-left text-grey-darker hover:bg-orange-light/20 hover:text-orange-darker cursor-pointer"
+                        @click="insertSnippet(entry.template)"
+                    >{{ entry.label }}</button>
+                    <template v-else>
+                        <div class="flex items-center justify-between px-3 py-1.5 text-grey-darker group-hover:bg-orange-light/20 group-hover:text-orange-darker cursor-default">
+                            <span>{{ entry.label }}</span>
+                            <FontAwesomeIcon icon="fa-solid fa-caret-right" class="text-[10px]" />
+                        </div>
+                        <div class="hidden group-hover:block absolute left-full top-0 w-56 bg-white rounded-lg shadow-2xl border border-grey-light py-1">
+                            <button
+                                v-for="item in entry.items"
+                                :key="item.label"
+                                type="button"
+                                class="w-full px-3 py-1.5 text-left text-grey-darker hover:bg-orange-light/20 hover:text-orange-darker cursor-pointer"
+                                @click="insertSnippet(item.template)"
+                            >{{ item.label }}</button>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </template>
     </Teleport>
 </template>

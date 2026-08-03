@@ -7,6 +7,14 @@ and this project adheres to a single monorepo-wide version declared in `global.j
 
 ## [Unreleased]
 
+### Added
+
+- The visual dialogue editor's node graph now supports right-clicking empty canvas to create a new
+  node at that location, in addition to the existing "Add Node" toolbar button.
+- The visual dialogue editor's node body field now has a right-click menu for inserting Dialogue
+  Branch statements (reply options, `<<set>>`, `<<if>>`/`<<elseif>>`/`<<else>>`, `<<random>>`,
+  `<<action>>`, and all `<<input>>` types) at the cursor, instead of writing the raw syntax by hand.
+
 ## [2.0.6] - 2026-07-29
 
 ### Added

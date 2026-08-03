@@ -110,7 +110,7 @@ function floatingEdgePath(sourceNode, targetNode) {
     return { path, labelX, labelY };
 }
 
-const { fitView, setCenter, getViewport } = useVueFlow();
+const { fitView, setCenter, getViewport, screenToFlowCoordinate } = useVueFlow();
 
 const loading = ref(false);
 const flowNodes = ref([]);
@@ -265,14 +265,25 @@ function nextDefaultTitle() {
     return `NewNode${n}`;
 }
 
-function addNode() {
+// Rough on-screen footprint of a collapsed node (see the `#node-dialogueNode` template below) —
+// just enough to center a newly placed node under the cursor rather than anchoring its corner.
+const NEW_NODE_WIDTH = 180;
+const NEW_NODE_HEIGHT = 30;
+
+function addNode(position) {
     if (!props.dialogueName || creatingNode.value) return;
     const title = nextDefaultTitle();
-    // Cascade new nodes diagonally from the origin so repeated clicks don't stack on top of
-    // each other; a proper "place near the current viewport" position can follow later.
-    const index = rawNodesByTitle.value.size;
-    const x = (index % GRID_COLUMNS) * GRID_SPACING_X;
-    const y = Math.floor(index / GRID_COLUMNS) * GRID_SPACING_Y;
+    let x, y;
+    if (position) {
+        x = position.x - NEW_NODE_WIDTH / 2;
+        y = position.y - NEW_NODE_HEIGHT / 2;
+    } else {
+        // Cascade new nodes diagonally from the origin so repeated clicks don't stack on top of
+        // each other; a proper "place near the current viewport" position can follow later.
+        const index = rawNodesByTitle.value.size;
+        x = (index % GRID_COLUMNS) * GRID_SPACING_X;
+        y = Math.floor(index / GRID_COLUMNS) * GRID_SPACING_Y;
+    }
     const header = serializeHeaderTags(setPosition(new Map([['title', title]]), x, y));
 
     creatingNode.value = true;
@@ -289,6 +300,11 @@ function addNode() {
         .finally(() => {
             creatingNode.value = false;
         });
+}
+
+function onPaneContextMenu(event) {
+    event.preventDefault();
+    addNode(screenToFlowCoordinate({ x: event.clientX, y: event.clientY }));
 }
 
 // ---- Node selection / content editing ----
@@ -352,6 +368,7 @@ defineExpose({
             @node-drag-stop="onNodeDragStop"
             @node-click="onNodeClick"
             @nodes-initialized="onNodesInitialized"
+            @pane-context-menu="onPaneContextMenu"
         >
             <template #node-dialogueNode="{ data }">
                 <div
