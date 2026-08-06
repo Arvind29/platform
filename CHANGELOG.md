@@ -16,6 +16,14 @@ and this project adheres to a single monorepo-wide version declared in `global.j
   `<<action>>`, and all `<<input>>` types) at the cursor, instead of writing the raw syntax by hand.
 - The "Service Unavailable" screen's status icons now show the exact URL each reachability check
   hit, on hover, to make it easier to tell which backend a failure is actually pointing at.
+- The Web Service's resource server now trusts more than one Keycloak realm: the configured
+  `dlb.auth.keycloak.realm` plus any realm on the same Keycloak instance named
+  `<that realm>-<anything>`. This supports a hosting platform that provisions one Keycloak realm
+  per client or tenant on top of its own base realm, all sharing this same Dialogue Branch backend
+  and database; previously the JWT filter validated exclusively against the single configured
+  realm, rejecting an otherwise valid token from any other realm outright. The realm name is only
+  ever taken from a token's own (unverified) `iss` claim to select which known-trusted realm to
+  check the token's signature against, not to pick an arbitrary network address to call out to.
 
 ## [2.0.6] - 2026-07-29
 

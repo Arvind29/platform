@@ -28,27 +28,42 @@
 
 package com.dialoguebranch.web.service;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationManagerResolver;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
+import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Spring Security configuration for the Dialogue Branch Web Service.
  *
  * <p>The service is a pure OAuth2 resource server: the JWT filter validates every bearer token
- * against the Keycloak JWKS endpoint before the request reaches a controller. Clients obtain
- * tokens directly from Keycloak (Authorization Code + PKCE); this service never issues or
- * refreshes tokens itself.</p>
+ * before the request reaches a controller. Clients obtain tokens directly from Keycloak
+ * (Authorization Code + PKCE); this service never issues or refreshes tokens itself.</p>
+ *
+ * <p>Some hosting platforms run one Keycloak realm per client or tenant on the same Keycloak
+ * instance, named as a suffix of a shared base realm (e.g. {@code Acme-North} and
+ * {@code Acme-South} alongside a base {@code Acme} realm). Rather than validating against only
+ * the single realm configured in {@code dlb.auth.keycloak.realm},
+ * {@link #keycloakAuthenticationManagerResolver()} also trusts any realm on the same Keycloak
+ * instance that follows this naming convention, so tokens from any of those realms are accepted
+ * here, all sharing this same Dialogue Branch backend and database. See that method's own Javadoc
+ * for what this does and does not guarantee.</p>
  *
  * @author Dennis Hofs
  */
@@ -72,7 +87,8 @@ public class SecurityConfig {
      * session state, since authentication is via bearer token on every request), CORS using
      * {@link #corsConfigurationSource()}, CSRF protection disabled (not applicable to a
      * stateless token-based API), a fixed set of end-points that are publicly accessible without
-     * a token, and OAuth2 JWT validation (via {@link #keycloakJwtDecoder()}) for everything else.
+     * a token, and OAuth2 JWT validation (via {@link #keycloakAuthenticationManagerResolver()})
+     * for everything else.
      *
      * @param http the {@link HttpSecurity} to configure.
      * @return the configured {@link SecurityFilterChain}.
@@ -99,22 +115,88 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .oauth2ResourceServer(oauth2 -> oauth2
-                .jwt(jwt -> {})
+                .authenticationManagerResolver(keycloakAuthenticationManagerResolver())
             );
 
         return http.build();
     }
 
     /**
-     * Creates the {@link JwtDecoder} used to validate Keycloak-issued JWT tokens. The decoder
-     * fetches and caches the public keys from the Keycloak JWKS endpoint automatically.
+     * Resolves each request's {@link AuthenticationManager} from its own JWT's {@code iss} claim,
+     * rather than validating against one fixed realm: the configured {@code dlb.auth.keycloak.realm}
+     * is trusted, and so is any realm on the same Keycloak instance named
+     * {@code <that realm>-<anything>}, a common convention for a hosting platform that provisions
+     * one Keycloak realm per client or tenant alongside its own base/admin realm. Deliberately not
+     * {@code JwtIssuerAuthenticationManagerResolver.fromTrustedIssuers(Predicate)}, which would do
+     * OIDC discovery against the token's own {@code iss} claim, letting attacker-controlled token
+     * content pick which network address this service calls out to. Instead, only the realm-name
+     * path segment is taken from the (still unverified at this point) issuer claim.
+     *
+     * <p>The realm name is extracted by matching against {@code dlb.auth.keycloak.browser-base-url},
+     * not {@code base-url}: a token's {@code iss} always reflects whichever address the browser
+     * used to reach Keycloak during login, which in a containerized deployment is typically not the
+     * same address this service itself uses to reach Keycloak internally (see
+     * {@link DlbProperties.Auth.Keycloak#getBrowserBaseUrl()}'s own Javadoc). The actual JWKS
+     * network call, by contrast, always goes to this service's own trusted {@code base-url}, with
+     * only the realm name (never a full URL) taken from the token.
+     *
+     * <p><strong>What this does not do:</strong> this service has no notion of tenant lifecycle
+     * beyond Keycloak itself, so it cannot tell a realm the hosting platform currently considers
+     * active apart from one it has deactivated elsewhere but not deleted from Keycloak. Any realm
+     * matching the naming convention above stays trusted here for as long as it exists in
+     * Keycloak. A hosting platform that needs to revoke a tenant's access to dialogue features
+     * more strictly than that should also enforce it at whatever layer of its own tracks tenant
+     * lifecycle, upstream of this service.
      */
     @Bean
-    public JwtDecoder keycloakJwtDecoder() {
+    public AuthenticationManagerResolver<HttpServletRequest> keycloakAuthenticationManagerResolver() {
         DlbProperties.Auth.Keycloak kc = dlbProperties.getAuth().getKeycloak();
-        String base = kc.getBaseUrl().endsWith("/") ? kc.getBaseUrl() : kc.getBaseUrl() + "/";
-        String jwkSetUri = base + "realms/" + kc.getRealm() + "/protocol/openid-connect/certs";
-        return NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
+        String internalRealmsBase = normalizeBaseUrl(kc.getBaseUrl()) + "realms/";
+        String issuerRealmsBase = normalizeBaseUrl(kc.getBrowserBaseUrl()) + "realms/";
+        String adminRealm = kc.getRealm();
+        Map<String, AuthenticationManager> managerCache = new ConcurrentHashMap<>();
+
+        return new JwtIssuerAuthenticationManagerResolver(issuer -> {
+            String realmName = extractRealmName(issuer, issuerRealmsBase);
+            if (realmName == null || !isTrustedRealm(realmName, adminRealm)) {
+                return null;
+            }
+            return managerCache.computeIfAbsent(issuer, iss -> {
+                String jwkSetUri = internalRealmsBase + realmName + "/protocol/openid-connect/certs";
+                NimbusJwtDecoder decoder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
+                decoder.setJwtValidator(JwtValidators.createDefaultWithIssuer(iss));
+                JwtAuthenticationProvider provider = new JwtAuthenticationProvider(decoder);
+                return (AuthenticationManager) authentication -> provider.authenticate(authentication);
+            });
+        });
+    }
+
+    private static String normalizeBaseUrl(String baseUrl) {
+        return baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
+    }
+
+    /**
+     * Extracts the single realm-name path segment from {@code issuer} if it starts with
+     * {@code realmsBase} and names exactly one further segment (no extra {@code /}); {@code null}
+     * otherwise (issuer from an unrelated Keycloak instance, or a malformed value).
+     *
+     * <p>Package-private, not private, so {@code SecurityConfigTest} can exercise the trust
+     * decision directly without needing to construct a signed JWT and a servlet request.
+     */
+    static String extractRealmName(String issuer, String realmsBase) {
+        if (issuer == null || !issuer.startsWith(realmsBase)) {
+            return null;
+        }
+        String remainder = issuer.substring(realmsBase.length());
+        if (remainder.isEmpty() || remainder.contains("/")) {
+            return null;
+        }
+        return remainder;
+    }
+
+    /** True for {@code adminRealm} itself, or any {@code <adminRealm>-<slug>} tenant realm name. */
+    static boolean isTrustedRealm(String realmName, String adminRealm) {
+        return realmName.equals(adminRealm) || realmName.startsWith(adminRealm + "-");
     }
 
     private CorsConfigurationSource corsConfigurationSource() {
