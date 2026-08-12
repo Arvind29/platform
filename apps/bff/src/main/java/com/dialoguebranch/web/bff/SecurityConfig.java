@@ -71,6 +71,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -81,11 +82,6 @@ import java.util.function.Supplier;
  * server-side, in the HTTP session (persisted to MariaDB via Spring Session, not this JVM's own
  * heap — see {@code application.yml}'s {@code spring.session} block). The browser only ever holds
  * the {@code JSESSIONID} cookie, never a raw token.
- *
- * <p>Mirrors the Backend-for-Frontend pattern already in production use for the Lizz platform's
- * own web clients (see the {@code apps/bff} module in the {@code connectedcare-nl/lizz}
- * repository) — this is a from-scratch Java port of that same design, since this codebase's own
- * stack is Java/Gradle rather than Kotlin.</p>
  *
  * @author Dennis Hofs
  */
@@ -170,6 +166,7 @@ public class SecurityConfig {
      *                             successful logout (the two cases need the exact same value: the
      *                             SPA's own origin) — see the property's own comment in
      *                             {@code application.yml}.
+     * @param sessionMaxAge absolute cap on session age, see {@link SessionMaxAgeFilter}.
      * @param cookieSerializer writes the {@code SESSION} cookie, reused by
      *                         {@link SessionCookieRefreshFilter} to re-issue it on every request.
      * @return the configured {@link SecurityFilterChain}.
@@ -179,6 +176,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(
             HttpSecurity http, ClientRegistrationRepository clientRegistrationRepository,
             @Value("${dlb.bff.post-login-redirect-url:/}") String postLoginRedirectUrl,
+            @Value("${dlb.bff.session-max-age}") Duration sessionMaxAge,
             CookieSerializer cookieSerializer)
             throws Exception {
 
@@ -250,11 +248,15 @@ public class SecurityConfig {
         // to read on its first, unauthenticated page load. Matches Spring's documented SPA recipe.
         http.addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class);
 
+        // Runs before SessionCookieRefreshFilter: a session killed for exceeding
+        // dlb.bff.session-max-age must not have its cookie renewed right after.
+        http.addFilterAfter(new SessionMaxAgeFilter(sessionMaxAge), CsrfCookieFilter.class);
+
         // Re-issues the SESSION cookie on every request so its Max-Age keeps sliding forward like
         // the server-side session's own inactivity timeout does — Spring Session otherwise only
         // writes that cookie once, at session creation, so it would hard-expire regardless of how
         // active the user stayed.
-        http.addFilterAfter(new SessionCookieRefreshFilter(cookieSerializer), CsrfCookieFilter.class);
+        http.addFilterAfter(new SessionCookieRefreshFilter(cookieSerializer), SessionMaxAgeFilter.class);
 
         return http.build();
     }
@@ -329,6 +331,37 @@ public class SecurityConfig {
             CsrfToken csrfToken = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
             if (csrfToken != null) {
                 csrfToken.getToken();
+            }
+            filterChain.doFilter(request, response);
+        }
+    }
+
+    /**
+     * Server-side counterpart to Keycloak's {@code client.session.max.lifespan} (see
+     * {@code sync-realm.py}'s handling of {@code DLB_BFF_SESSION_MAX_AGE}): an absolute cap on
+     * session age that, unlike {@code dlb.bff.session-timeout}'s sliding inactivity window,
+     * activity can't extend. {@link HttpSession#getCreationTime()} is what makes this possible,
+     * Spring Session tracks it separately from the last-accessed time the sliding timeout relies
+     * on, so it stays fixed regardless of how active the session has been.
+     */
+    private static final class SessionMaxAgeFilter extends OncePerRequestFilter {
+
+        private final Duration maxAge;
+
+        SessionMaxAgeFilter(Duration maxAge) {
+            this.maxAge = maxAge;
+        }
+
+        @Override
+        protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+                                         FilterChain filterChain)
+                throws ServletException, IOException {
+            HttpSession session = request.getSession(false);
+            if (session != null) {
+                Duration age = Duration.ofMillis(System.currentTimeMillis() - session.getCreationTime());
+                if (age.compareTo(maxAge) > 0) {
+                    session.invalidate();
+                }
             }
             filterChain.doFilter(request, response);
         }

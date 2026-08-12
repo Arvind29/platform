@@ -18,10 +18,17 @@ adding the "client" Compose profile's own origin to dlb-bff) and have it actuall
 developer's already-provisioned local Keycloak on the next `docker compose up`, without them
 needing to reset their volume or hand-edit the client in the admin console.
 
-This deliberately does not sync client secrets from environment variables the way the equivalent
-connectedcare-nl/lizz script does: this stack has no production deployment, so a client's secret
-value doesn't matter beyond "known and stable for local development", which is preserved for free
-by only ever PUTting back a client representation this script itself just GET'd.
+This deliberately does not sync client secrets from environment variables: this stack has no
+production deployment, so a client's secret value doesn't matter beyond "known and stable for
+local development", which is preserved for free by only ever PUTting back a client representation
+this script itself just GET'd.
+
+DLB_BFF_SESSION_TIMEOUT/DLB_BFF_SESSION_MAX_AGE are the one exception to the additive-only,
+never-destructive approach above: they're each read from the environment (falling back to
+dialoguebranch-realm.json's own checked-in value) and pushed as the realm's session-timeout
+ceiling and the dlb-bff client's own session-timeout attributes, overwriting rather than merging,
+so that changing either actually reaches a developer's already-provisioned realm instead of only
+ever adding to it.
 
 Keycloak's own depends_on condition (see compose.yml) is "service_started", the weakest one
 Compose offers — it fires as soon as the container process launches, well before Keycloak has
@@ -79,7 +86,58 @@ def api(method: str, path: str, token: str, body=None):
         return json.loads(raw) if raw else None
 
 
+DURATION_UNIT_SECONDS = {"s": 1, "m": 60, "h": 3600, "d": 86400}
+
+
+def parse_duration_seconds(value: str) -> int:
+    """Parses Spring Boot's simple duration format (e.g. "7d", "30m") into whole seconds."""
+    unit = value[-1]
+    if unit in DURATION_UNIT_SECONDS:
+        return int(value[:-1]) * DURATION_UNIT_SECONDS[unit]
+    return int(value)
+
+
+# The clients whose own session-timeout attributes should track DLB_BFF_SESSION_TIMEOUT/
+# DLB_BFF_SESSION_MAX_AGE rather than whatever dialoguebranch-realm.json checks in. Add an entry
+# here for each new BFF instance.
+BFF_CLIENT_IDS = {"dlb-bff"}
+
+REALM_SESSION_SETTINGS = {
+    "DLB_BFF_SESSION_TIMEOUT": "ssoSessionIdleTimeout",
+    "DLB_BFF_SESSION_MAX_AGE": "ssoSessionMaxLifespan",
+}
+CLIENT_SESSION_ATTRIBUTES = {
+    "DLB_BFF_SESSION_TIMEOUT": "client.session.idle.timeout",
+    "DLB_BFF_SESSION_MAX_AGE": "client.session.max.lifespan",
+}
+
+
+def sync_realm_settings(realm: dict, token: str) -> None:
+    """Pushes the realm's session-timeout ceiling, env vars if set, otherwise
+    dialoguebranch-realm.json's own checked-in value. Either way this must run before
+    sync_client(), Keycloak rejects a client's own session-timeout attributes if they'd exceed the
+    realm's current ceiling."""
+    body = {}
+    for env_var, realm_key in REALM_SESSION_SETTINGS.items():
+        body[realm_key] = (
+            parse_duration_seconds(os.environ[env_var]) if env_var in os.environ else realm[realm_key]
+        )
+    api("PUT", f"/admin/realms/{REALM}", token, body)
+    print(f"Synced realm settings: {list(body.keys())}")
+
+
+def apply_session_env_overrides(client: dict) -> None:
+    """Overrides a BFF client's checked-in session-timeout attributes from the environment, if
+    set, before sync_client() reads it as the desired state."""
+    if client["clientId"] not in BFF_CLIENT_IDS:
+        return
+    for env_var, attribute in CLIENT_SESSION_ATTRIBUTES.items():
+        if env_var in os.environ:
+            client.setdefault("attributes", {})[attribute] = str(parse_duration_seconds(os.environ[env_var]))
+
+
 LOGOUT_URIS_ATTR = "post.logout.redirect.uris"
+SESSION_ATTRIBUTE_KEYS = ("client.session.idle.timeout", "client.session.max.lifespan")
 
 
 def merge_list_field(existing: dict, desired: dict, field: str) -> bool:
@@ -111,6 +169,21 @@ def merge_logout_uris(existing: dict, desired: dict) -> bool:
     return True
 
 
+def merge_session_attributes(existing: dict, desired: dict) -> bool:
+    """Sets the session-timeout attributes to desired's value if present and different, unlike
+    the other merge_* helpers above this overwrites rather than unions: pushing an updated
+    DLB_BFF_SESSION_TIMEOUT/DLB_BFF_SESSION_MAX_AGE must actually reach an already-provisioned
+    client, not just get added alongside whatever it already had."""
+    existing_attrs = existing.setdefault("attributes", {})
+    changed = False
+    for key in SESSION_ATTRIBUTE_KEYS:
+        value = desired.get("attributes", {}).get(key)
+        if value is not None and existing_attrs.get(key) != value:
+            existing_attrs[key] = value
+            changed = True
+    return changed
+
+
 def sync_client(desired: dict, token: str) -> None:
     client_id = desired["clientId"]
     found = api(
@@ -128,9 +201,10 @@ def sync_client(desired: dict, token: str) -> None:
     changed |= merge_list_field(existing, desired, "redirectUris")
     changed |= merge_list_field(existing, desired, "webOrigins")
     changed |= merge_logout_uris(existing, desired)
+    changed |= merge_session_attributes(existing, desired)
     if changed:
         api("PUT", f"/admin/realms/{REALM}/clients/{existing['id']}", token, existing)
-        print(f"Updated redirect/logout URIs on existing client: {client_id}")
+        print(f"Updated existing client: {client_id}")
     else:
         print(f"Already up to date: {client_id}")
 
@@ -154,7 +228,11 @@ def main() -> None:
     realm = json.loads(raw)
 
     token = wait_for_token()
+    # Must run before the client loop: a client's own session-timeout attributes are rejected if
+    # they exceed the realm's current ceiling.
+    sync_realm_settings(realm, token)
     for client in realm["clients"]:
+        apply_session_env_overrides(client)
         sync_client(client, token)
 
 

@@ -12,6 +12,7 @@
 #   dlb.bff.mariadb.host                  → DLB_BFF_MARIADB_HOST
 #   dlb.bff.mariadb.password              → DLB_BFF_MARIADB_PASSWORD
 #   dlb.bff.session-timeout               → DLB_BFF_SESSION_TIMEOUT
+#   dlb.bff.session-max-age               → DLB_BFF_SESSION_MAX_AGE
 #
 # The keycloak ClientRegistration itself is built by hand in SecurityConfig from these same
 # properties, not auto-configured from spring.security.oauth2.client.* — see its Javadoc for why
@@ -87,6 +88,11 @@ dlb:
     # server.servlet.session block above. Boot's own default (30 minutes) is easy to hit
     # mid-session; 7d suits something like Studio, where visits can be days apart.
     session-timeout: ${DLB_BFF_SESSION_TIMEOUT:7d}
+    # Absolute cap on session age, read by SessionMaxAgeFilter. Unlike session-timeout above,
+    # activity never resets this, it's the ceiling a continuously active user still eventually
+    # hits. Also the single source of truth (with session-timeout) for Keycloak's own session
+    # settings, sync-realm.py mirrors both into the realm and the dlb-bff client on every sync.
+    session-max-age: ${DLB_BFF_SESSION_MAX_AGE:30d}
     # ---- Session storage (see the spring.datasource/spring.session block above) ----
     mariadb:
       host: localhost
