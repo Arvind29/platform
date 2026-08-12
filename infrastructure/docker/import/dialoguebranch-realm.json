@@ -8,8 +8,8 @@
   "refreshTokenMaxReuse": 0,
   "accessTokenLifespan": 3600,
   "accessTokenLifespanForImplicitFlow": 900,
-  "ssoSessionIdleTimeout": 1800,
-  "ssoSessionMaxLifespan": 36000,
+  "ssoSessionIdleTimeout": 604800,
+  "ssoSessionMaxLifespan": 2592000,
   "ssoSessionIdleTimeoutRememberMe": 0,
   "ssoSessionMaxLifespanRememberMe": 0,
   "offlineSessionIdleTimeout": 2592000,
@@ -457,7 +457,9 @@
       "protocol": "openid-connect",
       "attributes": {
         "realm_client": "false",
-        "post.logout.redirect.uris": "+"
+        "post.logout.redirect.uris": "+",
+        "client.session.idle.timeout": "1800",
+        "client.session.max.lifespan": "36000"
       },
       "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": false,
@@ -505,7 +507,9 @@
       "attributes": {
         "realm_client": "false",
         "post.logout.redirect.uris": "+",
-        "pkce.code.challenge.method": "S256"
+        "pkce.code.challenge.method": "S256",
+        "client.session.idle.timeout": "1800",
+        "client.session.max.lifespan": "36000"
       },
       "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": false,
@@ -559,7 +563,9 @@
       "attributes": {
         "realm_client": "false",
         "client.use.lightweight.access.token.enabled": "true",
-        "post.logout.redirect.uris": "+"
+        "post.logout.redirect.uris": "+",
+        "client.session.idle.timeout": "1800",
+        "client.session.max.lifespan": "36000"
       },
       "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": true,
@@ -602,7 +608,9 @@
       "protocol": "openid-connect",
       "attributes": {
         "realm_client": "true",
-        "post.logout.redirect.uris": "+"
+        "post.logout.redirect.uris": "+",
+        "client.session.idle.timeout": "1800",
+        "client.session.max.lifespan": "36000"
       },
       "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": false,
@@ -660,7 +668,9 @@
         "standard.token.exchange.enabled": "false",
         "post.logout.redirect.uris": "+",
         "oauth2.device.authorization.grant.enabled": "false",
-        "backchannel.logout.revoke.offline.tokens": "false"
+        "backchannel.logout.revoke.offline.tokens": "false",
+        "client.session.idle.timeout": "1800",
+        "client.session.max.lifespan": "36000"
       },
       "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": true,
@@ -714,7 +724,9 @@
         "standard.token.exchange.enabled": "false",
         "post.logout.redirect.uris": "__BFF_POST_LOGOUT_REDIRECT_URI__##http://localhost:8080/",
         "oauth2.device.authorization.grant.enabled": "false",
-        "backchannel.logout.revoke.offline.tokens": "false"
+        "backchannel.logout.revoke.offline.tokens": "false",
+        "client.session.idle.timeout": "604800",
+        "client.session.max.lifespan": "2592000"
       },
       "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": true,
@@ -757,7 +769,9 @@
       "protocol": "openid-connect",
       "attributes": {
         "realm_client": "true",
-        "post.logout.redirect.uris": "+"
+        "post.logout.redirect.uris": "+",
+        "client.session.idle.timeout": "1800",
+        "client.session.max.lifespan": "36000"
       },
       "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": false,
@@ -808,7 +822,9 @@
         "realm_client": "false",
         "client.use.lightweight.access.token.enabled": "true",
         "post.logout.redirect.uris": "+",
-        "pkce.code.challenge.method": "S256"
+        "pkce.code.challenge.method": "S256",
+        "client.session.idle.timeout": "1800",
+        "client.session.max.lifespan": "36000"
       },
       "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": true,

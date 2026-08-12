@@ -134,6 +134,11 @@ services:
       KEYCLOAK_INTERNAL_URL: http://keycloak:8080
       KEYCLOAK_BFF_REDIRECT_URI: http://localhost:8082/login/oauth2/code/keycloak
       KEYCLOAK_BFF_POST_LOGOUT_REDIRECT_URI: http://localhost:5173/
+      # Same values as the bff/bff-client services' own DLB_BFF_SESSION_TIMEOUT/
+      # DLB_BFF_SESSION_MAX_AGE below: the single source of truth sync-realm.py mirrors into
+      # Keycloak's session settings.
+      DLB_BFF_SESSION_TIMEOUT: ${DLB_BFF_SESSION_TIMEOUT:-7d}
+      DLB_BFF_SESSION_MAX_AGE: ${DLB_BFF_SESSION_MAX_AGE:-30d}
     depends_on:
       keycloak:
         condition: service_started
@@ -193,7 +198,8 @@ services:
       DLB_BFF_POST_LOGIN_REDIRECT_URL: http://localhost:5173/
       DLB_BFF_MARIADB_HOST: mariadb
       DLB_BFF_MARIADB_PASSWORD: dev
-      DLB_BFF_SESSION_TIMEOUT: 7d
+      DLB_BFF_SESSION_TIMEOUT: ${DLB_BFF_SESSION_TIMEOUT:-7d}
+      DLB_BFF_SESSION_MAX_AGE: ${DLB_BFF_SESSION_MAX_AGE:-30d}
     ports:
       - "8082:8082"
     depends_on:
@@ -235,7 +241,8 @@ services:
       DLB_BFF_OAUTH2_CLIENT_SECRET: dev-secret
       DLB_BFF_MARIADB_HOST: mariadb
       DLB_BFF_MARIADB_PASSWORD: dev
-      DLB_BFF_SESSION_TIMEOUT: 7d
+      DLB_BFF_SESSION_TIMEOUT: ${DLB_BFF_SESSION_TIMEOUT:-7d}
+      DLB_BFF_SESSION_MAX_AGE: ${DLB_BFF_SESSION_MAX_AGE:-30d}
     depends_on:
       keycloak-sync:
         condition: service_completed_successfully
