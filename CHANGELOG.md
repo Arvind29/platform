@@ -7,6 +7,8 @@ and this project adheres to a single monorepo-wide version declared in `global.j
 
 ## [Unreleased]
 
+## [2.0.7] - 2026-08-12
+
 ### Added
 
 - The visual dialogue editor's node graph now supports right-clicking empty canvas to create a new
