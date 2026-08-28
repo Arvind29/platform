@@ -23,6 +23,10 @@ and this project adheres to a single monorepo-wide version declared in `global.j
   the BFF proxy, that host and port were the client's own, not the Web Service's. It now reads
   simply "Connected to Web Service v`<version>`." (the version is still the real one, fetched
   through the proxy), or "Could not connect to the Web Service." on failure.
+- The "Create Project" wizard's third step now calls the setting the project's "Source Language"
+  rather than "Default Language", and explains that it's the language dialogue content is authored
+  in and that other languages are added later as translations ([#76](https://github.com/dialoguebranch/platform/issues/76)).
+  This matches the wording already used in the project configuration dialog.
 
 ## [2.0.7] - 2026-08-12
 

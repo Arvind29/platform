@@ -275,19 +275,19 @@ function submitCreate() {
                         </div>
                     </template>
 
-                    <!-- Step 3: Default Language -->
+                    <!-- Step 3: Source Language -->
                     <template v-else-if="currentStep === 3">
-                        <h3 class="font-title font-bold text-base text-orange-darker">Define Default Language</h3>
+                        <h3 class="font-title font-bold text-base text-orange-darker">Set the Source Language</h3>
                         <div v-if="createError" class="flex items-center gap-2 border border-red-dark/40 bg-red-dark/10 text-red-dark rounded-xl px-4 py-3 text-sm font-title">
                             <FontAwesomeIcon icon="fa-solid fa-circle-exclamation" class="shrink-0" />
                             {{ createError }}
                         </div>
                         <p class="text-sm text-grey-dark">
-                            Next, you can indicate which language will be used by default in this
-                            project. Select &ldquo;simplified&rdquo; for a short list of common
-                            languages. Choose &ldquo;extended&rdquo; for a more extensive list.
-                            Alternatively, choose &ldquo;Custom&rdquo; to fill in your own language
-                            ISO code.
+                            Choose the project&rsquo;s <strong>source language</strong> &mdash; the
+                            language you will author dialogue content in. Other languages can be
+                            added later as translations. Select &ldquo;Simplified&rdquo; for a short
+                            list of common languages, &ldquo;Extended&rdquo; for a more extensive
+                            list, or &ldquo;Custom&rdquo; to fill in your own language ISO code.
                         </p>
                         <div class="flex items-center justify-between">
                             <div class="flex gap-5">
@@ -310,7 +310,7 @@ function submitCreate() {
                             </label>
                         </div>
                         <div v-if="languageMode !== 'custom'">
-                            <label class="block font-title font-bold text-sm text-orange-darker mb-1">Default Language:</label>
+                            <label class="block font-title font-bold text-sm text-orange-darker mb-1">Source Language:</label>
                             <select
                                 v-model="selectedLanguageCode"
                                 class="w-full px-3 py-2 border border-grey-light rounded-lg text-sm font-title focus:outline-none focus:border-orange-dark bg-white"
