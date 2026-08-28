@@ -30,11 +30,9 @@ const appVersion = __APP_VERSION__;
 onUnmounted(() => {
     document.removeEventListener('click', onClickOutsideMenus);
 });
-// config.baseUrl is a same-origin relative path (e.g. "/api/v1"), proxied through the BFF — not
-// a URL of its own to parse. The connection info below is about where the browser itself is
-// actually talking, which is this page's own origin either way.
-const serviceHost = window.location.hostname;
-const servicePort = window.location.port;
+// The browser only ever talks to this page's own origin; the Web Service sits behind the BFF
+// proxy and has no browser-visible host/port of its own to report. So the connection info just
+// states whether the Web Service is reachable (through the proxy) and which version answered.
 const connectionInfo = ref('Not connected.');
 const showTechnicalInfo = ref(false);
 
@@ -43,10 +41,10 @@ onMounted(() => {
     panels.value.selectMobileTab(0);
     client.getServerInfo()
         .then((info) => {
-            connectionInfo.value = `Connected to ${serviceHost} on port ${servicePort} running Web Service v${info.serviceVersion}.`;
+            connectionInfo.value = `Connected to Web Service v${info.serviceVersion}.`;
         })
         .catch(() => {
-            connectionInfo.value = `Could not connect to ${serviceHost} on port ${servicePort}.`;
+            connectionInfo.value = 'Could not connect to the Web Service.';
         });
 
     // MainPage only ever mounts once a project is selected (see App.vue), so this always runs

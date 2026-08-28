@@ -7,6 +7,23 @@ and this project adheres to a single monorepo-wide version declared in `global.j
 
 ## [Unreleased]
 
+### Added
+
+- The web client's admin-only "Technical Information" dialog now also shows the Web Service's
+  version and build time, its configured base URL (`dlb.base-url`), the host/port/scheme it
+  observed on the incoming request (as seen by the service itself — behind the BFF proxy this is
+  the address the proxy connected to, not a browser-facing URL), and the Keycloak base URL and
+  realm it validates tokens against. These come from new fields on the `GET /v1/info/technical`
+  response, which remains restricted to the `admin` role.
+
+### Fixed
+
+- The web client's status bar no longer reports a misleading "Connected to `<host>` on port
+  `<port>`" line. Since the client talks only to its own origin and the Web Service sits behind
+  the BFF proxy, that host and port were the client's own, not the Web Service's. It now reads
+  simply "Connected to Web Service v`<version>`." (the version is still the real one, fetched
+  through the proxy), or "Could not connect to the Web Service." on failure.
+
 ## [2.0.7] - 2026-08-12
 
 ### Added

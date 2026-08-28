@@ -32,6 +32,7 @@ import com.dialoguebranch.web.service.controller.schema.ServiceInfoPayload;
 import com.dialoguebranch.web.service.controller.schema.TechnicalInfoPayload;
 import org.slf4j.LoggerFactory;
 import com.dialoguebranch.web.service.Application;
+import com.dialoguebranch.web.service.DlbProperties;
 import com.dialoguebranch.web.service.ProtocolVersion;
 import com.dialoguebranch.web.service.QueryRunner;
 import com.dialoguebranch.web.service.ServiceContext;
@@ -175,8 +176,28 @@ public class InfoController {
 		return QueryRunner.runQuery(
 				(protocolVersion, user) -> {
 					logger.info("GET /v{}/info/technical [user: {}]", version, user);
-					return new TechnicalInfoPayload(
+
+					DlbProperties properties = application.getDlbProperties();
+					DlbProperties.Auth.Keycloak keycloak = properties.getAuth().getKeycloak();
+
+					TechnicalInfoPayload payload = new TechnicalInfoPayload(
 							application.getApplicationManager().getActiveUserServiceCount());
+
+					// Host/port/scheme as this service itself observed the incoming request. Behind
+					// the BFF proxy this is the address the BFF connected to (e.g. an internal
+					// container hostname), not a browser-facing URL — which is exactly why it's
+					// admin-only diagnostics and not shown in the client's status bar.
+					payload.setServerName(request.getServerName());
+					payload.setServerPort(request.getServerPort());
+					payload.setScheme(request.getScheme());
+
+					payload.setConfiguredBaseUrl(properties.getBaseUrl());
+					payload.setServiceVersion(properties.getVersion());
+					payload.setBuildTime(properties.getBuildTime());
+					payload.setKeycloakBaseUrl(keycloak.getBaseUrl());
+					payload.setKeycloakRealm(keycloak.getRealm());
+
+					return payload;
 				},
 				version, ControllerFunctions.extractAccessToken(request), response, "", application,
 				AuthenticationInfo.USER_ROLE_ADMIN);
