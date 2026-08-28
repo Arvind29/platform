@@ -7,6 +7,15 @@ and this project adheres to a single monorepo-wide version declared in `global.j
 
 ## [Unreleased]
 
+### Changed
+
+- **Breaking:** `POST /v1/project/create-project` now expects the source-language fields as
+  `sourceLanguageCode` / `sourceLanguageName` instead of `defaultLanguageCode` /
+  `defaultLanguageName`. The old names are no longer accepted (a request using them fails with
+  "Field 'sourceLanguageCode' is required."). This aligns the create request with the rest of
+  the API, which already uses `sourceLanguage*` everywhere else (the create response, `GET
+  /v1/project/get-project`, and the database). The bundled web client is updated to match.
+
 ### Added
 
 - The web client's admin-only "Technical Information" dialog now also shows the Web Service's

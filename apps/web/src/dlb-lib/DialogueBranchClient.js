@@ -80,13 +80,13 @@ export class DialogueBranchClient {
         .then((response) => this._handleResponse(response));
     }
 
-    createProject(slug, displayName, description, defaultLanguageCode, defaultLanguageName) {
+    createProject(slug, displayName, description, sourceLanguageCode, sourceLanguageName) {
         const url = this._baseUrl + "/project/create-project";
 
         return this._fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ slug, displayName, description, defaultLanguageCode, defaultLanguageName }),
+            body: JSON.stringify({ slug, displayName, description, sourceLanguageCode, sourceLanguageName }),
         })
         .then((response) => this._handleResponse(response));
     }

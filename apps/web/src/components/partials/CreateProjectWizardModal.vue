@@ -21,7 +21,7 @@ const stepErrors = ref({});
 const creating = ref(false);
 const createError = ref('');
 
-// Step 3: default language selection, sourced from a bundled ISO 639 dataset (tag3 = ISO 639-3
+// Step 3: source language selection, sourced from a bundled ISO 639 dataset (tag3 = ISO 639-3
 // code, tag1 = BCP-47/ISO 639-1 code where one exists, name = English name, autonym = native
 // name). Lazy-loaded since it's ~300KB and only needed once this step is reached.
 const languageEntries = ref([]);
@@ -98,7 +98,7 @@ watch(recognizedCustomLanguageName, (newName, oldName) => {
     }
 });
 
-// A default language must be provided before a project can be created: a selection in
+// A source language must be provided before a project can be created: a selection in
 // Simplified/Extended mode, or both the code and name filled in for Custom mode.
 const canCreateProject = computed(() => {
     if (languageMode.value === 'custom') {
@@ -109,7 +109,7 @@ const canCreateProject = computed(() => {
 
 // The code/name pair that becomes the project's source language, resolved from whichever mode is
 // active.
-const defaultLanguage = computed(() => {
+const sourceLanguage = computed(() => {
     if (languageMode.value === 'custom') {
         return { code: customLanguageCode.value.trim(), name: customLanguageName.value.trim() };
     }
@@ -181,7 +181,7 @@ function submitCreate() {
     createError.value = '';
     creating.value = true;
     client.createProject(slug.value.trim(), displayName.value.trim(), description.value.trim(),
-        defaultLanguage.value.code, defaultLanguage.value.name)
+        sourceLanguage.value.code, sourceLanguage.value.name)
         .then((project) => {
             logEvent('project', 'Project $1 created', project.slug);
             emit('created', project);

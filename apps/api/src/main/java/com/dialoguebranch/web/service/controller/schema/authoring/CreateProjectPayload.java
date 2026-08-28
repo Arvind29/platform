@@ -37,8 +37,8 @@ public class CreateProjectPayload {
 	private String slug;
 	private String displayName;
 	private String description;
-	private String defaultLanguageCode;
-	private String defaultLanguageName;
+	private String sourceLanguageCode;
+	private String sourceLanguageName;
 
 	/**
 	 * @return the unique slug identifying the project to create.
@@ -71,24 +71,23 @@ public class CreateProjectPayload {
 	public void setDescription(String description) { this.description = description; }
 
 	/**
-	 * @return the language code (e.g. {@code "en"}) of the project's default (source) language.
+	 * @return the language code (e.g. {@code "en"}) of the project's source language.
 	 */
-	public String getDefaultLanguageCode() { return defaultLanguageCode; }
+	public String getSourceLanguageCode() { return sourceLanguageCode; }
 
 	/**
-	 * @param defaultLanguageCode the language code (e.g. {@code "en"}) of the project's default
-	 *                             (source) language.
+	 * @param sourceLanguageCode the language code (e.g. {@code "en"}) of the project's source
+	 *                           language.
 	 */
-	public void setDefaultLanguageCode(String defaultLanguageCode) { this.defaultLanguageCode = defaultLanguageCode; }
+	public void setSourceLanguageCode(String sourceLanguageCode) { this.sourceLanguageCode = sourceLanguageCode; }
 
 	/**
-	 * @return the human-readable name of the project's default (source) language.
+	 * @return the human-readable name of the project's source language.
 	 */
-	public String getDefaultLanguageName() { return defaultLanguageName; }
+	public String getSourceLanguageName() { return sourceLanguageName; }
 
 	/**
-	 * @param defaultLanguageName the human-readable name of the project's default (source)
-	 *                             language.
+	 * @param sourceLanguageName the human-readable name of the project's source language.
 	 */
-	public void setDefaultLanguageName(String defaultLanguageName) { this.defaultLanguageName = defaultLanguageName; }
+	public void setSourceLanguageName(String sourceLanguageName) { this.sourceLanguageName = sourceLanguageName; }
 }

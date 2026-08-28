@@ -208,16 +208,16 @@ public class ProjectController {
 					logger.info("POST /v{}/project/create-project [user: {}]", version, user);
 					if (payload.getSlug() == null || payload.getSlug().isBlank())
 						throw new BadRequestException("Field 'slug' is required.");
-					if (payload.getDefaultLanguageCode() == null || payload.getDefaultLanguageCode().isBlank())
-						throw new BadRequestException("Field 'defaultLanguageCode' is required.");
-					if (payload.getDefaultLanguageName() == null || payload.getDefaultLanguageName().isBlank())
-						throw new BadRequestException("Field 'defaultLanguageName' is required.");
+					if (payload.getSourceLanguageCode() == null || payload.getSourceLanguageCode().isBlank())
+						throw new BadRequestException("Field 'sourceLanguageCode' is required.");
+					if (payload.getSourceLanguageName() == null || payload.getSourceLanguageName().isBlank())
+						throw new BadRequestException("Field 'sourceLanguageName' is required.");
 					if (projectService.findBySlug(payload.getSlug()).isPresent())
 						throw new ConflictException(
 								"A project with slug '" + payload.getSlug() + "' already exists.");
 					return projectService.createProjectWithStarterDialogue(payload.getSlug(),
 							payload.getDisplayName(), payload.getDescription(),
-							payload.getDefaultLanguageCode(), payload.getDefaultLanguageName());
+							payload.getSourceLanguageCode(), payload.getSourceLanguageName());
 				},
 				version, ControllerFunctions.extractAccessToken(request), response, "", application,
 				AuthenticationInfo.USER_ROLE_ADMIN);
