@@ -27,9 +27,9 @@
  */
 
 /**
- * A ClientState object models the state of the Dialogue Branch Web Client.
- * It should be passed a reference to a custom Logger object so that it may
- * log its actions to the client's custom debug console.
+ * A ClientState object models the state of a generic JavaScript client for talking with a
+ * Dialogue Branch Web Service. It should be passed a reference to a custom Logger object so that
+ * it may log its actions to the client's custom debug console.
  *
  * @author Harm op den Akker (Fruit Tree Labs)
  */
@@ -40,7 +40,7 @@ export class ClientState {
     // ------------------------------------
 
     /**
-     * Creates an instance of a ClientState object to keep track of the state of the web client app.
+     * Creates an instance of a ClientState object to keep track of the state of a Dialogue Branch client.
      * Log information is passed through the provided Logger instance.
      * @param {Logger} logger A Logger instance that may be used to log information.
      */

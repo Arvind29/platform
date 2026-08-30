@@ -26,8 +26,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { ClientState } from '../dlb-lib/ClientState.js';
-import { DocumentFunctions } from '../dlb-lib/util/DocumentFunctions.js';
+import { ClientState } from './dlb-lib/ClientState.js';
+import { DocumentFunctions } from './dlb-lib/util/DocumentFunctions.js';
 
 export const DIALOGUE_WORKSPACE_STYLE_TEXT = "TEXT";
 export const DIALOGUE_WORKSPACE_STYLE_BALLOONS = "BALLOONS";

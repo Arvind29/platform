@@ -6,7 +6,7 @@ const state = inject('state');
 import { logEvent } from '@/composables/debug-log.js';
 import { describeError } from '@/composables/error-message.js';
 import { showError, dismissError } from '@/composables/error-toast.js';
-import { DIALOGUE_WORKSPACE_STYLE_TEXT, DIALOGUE_WORKSPACE_STYLE_BALLOONS, DIALOGUE_WORKSPACE_STYLE_EDIT, DIALOGUE_WORKSPACE_STYLE_TRANSLATE, DLB_APP_MODE_DRAFT } from '@/dlb-lib/StudioClientState.js';
+import { DIALOGUE_WORKSPACE_STYLE_TEXT, DIALOGUE_WORKSPACE_STYLE_BALLOONS, DIALOGUE_WORKSPACE_STYLE_EDIT, DIALOGUE_WORKSPACE_STYLE_TRANSLATE, DLB_APP_MODE_DRAFT } from '@/StudioClientState.js';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import IconButton from '../widgets/IconButton.vue';
 import BalloonDialogueComponent from './BalloonDialogueComponent.vue';

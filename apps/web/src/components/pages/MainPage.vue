@@ -12,7 +12,7 @@ import HeaderMenuItem from '../widgets/HeaderMenuItem.vue';
 import DialogueWorkspace from '../partials/DialogueWorkspace.vue';
 import ResizablePanels from '../widgets/ResizablePanels.vue';
 import VariableBrowser from '../partials/VariableBrowser.vue';
-import { DLB_APP_MODE_LIVE, DLB_APP_MODE_DRAFT } from '../../dlb-lib/StudioClientState.js';
+import { DLB_APP_MODE_LIVE, DLB_APP_MODE_DRAFT } from '../../StudioClientState.js';
 import { showError } from '../../composables/error-toast.js';
 import { describeError } from '../../composables/error-message.js';
 

@@ -1,6 +1,6 @@
 import { ConsoleLogger } from './dlb-lib/util/ConsoleLogger.js';
 import { LOG_LEVEL_NAMES } from './dlb-lib/util/AbstractLogger.js';
-import { StudioClientState } from './dlb-lib/StudioClientState.js';
+import { StudioClientState } from './StudioClientState.js';
 import config from './config.js';
 
 const LOGTAG = "StudioController";
