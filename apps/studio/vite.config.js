@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { fileURLToPath, URL } from 'node:url'
 import { readFileSync } from 'node:fs'
 
@@ -34,6 +35,15 @@ export default defineConfig({
         },
       },
     },
+  },
+  test: {
+    // Component tests (BalloonDialogueComponent / TextDialogueComponent) mount real DOM, so a
+    // browser-like environment is required; the pure composable tests don't care either way.
+    environment: 'jsdom',
+    include: ['src/**/*.spec.js'],
+    setupFiles: ['./vitest.setup.js'],
+    // Vitest picks up the `vue()` / `@` alias / `__APP_VERSION__` config above, so specs can
+    // import components and `@/...` paths exactly as the app does.
   },
   server: {
     // This app talks to the BFF only, same-origin, never to the Dialogue Branch Web Service or

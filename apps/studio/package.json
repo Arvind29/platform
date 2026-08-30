@@ -7,6 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "sync-version": "node -e \"import('../../global.json', {with:{type:'json'}}).then(g => { const fs = require('fs'); const p = JSON.parse(fs.readFileSync('./package.json')); p.version = g.default.version; fs.writeFileSync('./package.json', JSON.stringify(p, null, 2) + '\\n'); })\""
   },
   "dependencies": {
@@ -22,7 +24,10 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.3",
+    "@vue/test-utils": "^2.5.0",
+    "jsdom": "^30.0.1",
     "vite": "^6.2.4",
-    "vite-plugin-vue-devtools": "^7.7.2"
+    "vite-plugin-vue-devtools": "^7.7.2",
+    "vitest": "^4.1.11"
   }
 }

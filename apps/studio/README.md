@@ -28,3 +28,13 @@ npm run dev
 ```sh
 npm run build
 ```
+
+### Run Unit Tests
+
+Tests use [Vitest](https://vitest.dev/) + [Vue Test Utils](https://test-utils.vuejs.org/) in a
+jsdom environment. Spec files live next to the code they cover as `*.spec.js`.
+
+```sh
+npm test          # run once
+npm run test:watch
+```

@@ -26,6 +26,10 @@ and this project adheres to a single monorepo-wide version declared in `global.j
 
 ### Added
 
+- `apps/studio` now has a unit-test setup — Vitest + Vue Test Utils + jsdom, run with `npm test`.
+  Initial coverage is the dialogue-testing views (reply-option highlighting, the per-tab scroll
+  API, statement paragraph rendering, and the speech-bubble font-size ratchet) and the Dialogue
+  Browser sort/filter helpers.
 - The Variable Browser has a **Values / Used** toggle. **Values** is unchanged — the logged-in
   user's stored variable values. **Used** is a new read-only reference list of every variable name
   the project's dialogues reference, so you can look up the exact name of a variable (`$userName`
