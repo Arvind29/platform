@@ -10,7 +10,7 @@
 #   dlb.auth.keycloak.base-url          → DLB_AUTH_KEYCLOAK_BASE_URL
 #   dlb.auth.keycloak.client-id         → DLB_AUTH_KEYCLOAK_CLIENT_ID
 #
-# The defaults below are tuned for local development (compose-dev.yml).
+# The defaults below are tuned for local development (infrastructure/docker/compose.yml).
 # Production deployments must override all credentials via environment variables.
 
 spring:
@@ -96,7 +96,7 @@ dlb:
     host: localhost
     port: 3306
     user: root
-    # Default matches compose-dev.yml. Override with DLB_MARIADB_PASSWORD in production.
+    # Default matches infrastructure/docker/compose.yml. Override with DLB_MARIADB_PASSWORD in production.
     password: dev
     database: dialoguebranch
 
