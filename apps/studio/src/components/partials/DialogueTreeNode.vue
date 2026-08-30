@@ -116,13 +116,13 @@ function referenceDialogueCount(references) {
 </script>
 
 <template>
-    <div>
+    <div class="flex flex-col gap-0.5">
         <!-- Folder -->
         <div
             v-if="!isFile"
-            class="flex items-center gap-1 font-title font-black text-xs p-1 text-gray-600 select-none"
+            class="flex items-center gap-1 font-title font-black text-xs bg-grey-lighter px-1 py-0.5 text-gray-600 select-none"
             :class="forceExpanded ? 'cursor-default' : 'cursor-pointer hover:text-gray-800'"
-            :style="{ paddingLeft: (depth * 12 + 4) + 'px' }"
+            :style="{ marginLeft: (depth * 12) + 'px' }"
             @click="!forceExpanded && $emit('toggleFolder', path)"
         >
             <FontAwesomeIcon :icon="isOpen ? 'fa-solid fa-folder-open' : 'fa-solid fa-folder'" class="text-orange-dark w-3.5" />
@@ -150,8 +150,8 @@ function referenceDialogueCount(references) {
         <!-- File: rename input replaces the normal row while active -->
         <div
             v-if="isFile && renaming"
-            class="flex items-center gap-1 p-1"
-            :style="{ paddingLeft: (depth * 12 + 4) + 'px' }"
+            class="flex items-center gap-1 bg-grey-lighter px-1 py-0.5"
+            :style="{ marginLeft: (depth * 12) + 'px' }"
         >
             <input
                 v-model="renameInput"
@@ -172,8 +172,8 @@ function referenceDialogueCount(references) {
         <!-- File -->
         <div
             v-else-if="isFile"
-            class="flex items-center gap-1.5 font-title font-black text-xs p-1"
-            :style="{ paddingLeft: (depth * 12 + 4) + 'px' }"
+            class="flex items-center gap-1.5 font-title font-black text-xs bg-grey-lighter px-1 py-0.5"
+            :style="{ marginLeft: (depth * 12) + 'px' }"
         >
             <span
                 class="flex-1 min-w-0 truncate"

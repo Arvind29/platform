@@ -323,7 +323,7 @@ defineExpose({
             </select>
         </div>
 
-        <MainPagePanelContainer class="p-1 gap-1 flex flex-col sm:ml-1">
+        <MainPagePanelContainer class="p-1 gap-0.5 flex flex-col sm:ml-1">
             <div v-if="showNewDialogueInput" class="flex items-center gap-1 p-1">
                 <input
                     v-model="newDialogueName"

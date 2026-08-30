@@ -9,6 +9,8 @@ and this project adheres to a single monorepo-wide version declared in `global.j
 
 ### Changed
 
+- Dialogue Browser entries (folders and dialogues alike) now render as grey row blocks, matching
+  the Variable Browser, and each block is inset by its nesting depth.
 - The web client is now called "Dialogue Branch Studio" in its own UI: the footer info bar, the
   browser tab title, the project-selector subtitle, and the version-mismatch page.
 - Studio's balloon test view steps the speech-bubble font size down for long statements
