@@ -1,4 +1,4 @@
-# Standalone Dialogue Branch Web Client Docker image.
+# Standalone Dialogue Branch Studio Docker image.
 #
 # Build context must be the platform/ root of the monorepo:
 #   docker build -t dlb-web-client -f apps/web/Dockerfile .

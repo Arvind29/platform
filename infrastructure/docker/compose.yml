@@ -14,16 +14,16 @@
 #
 #   1. Web service only: this file with no profile, run the API separately (e.g. `./gradlew
 #      bootRun` in apps/api).
-#   2. Web client development: `--profile api` (API + BFF in Docker), run the web client
+#   2. Dialogue Branch Studio development: `--profile api` (API + BFF in Docker), run Studio
 #      separately (`npm run dev` in apps/web) — its vite.config.js dev-server proxy sends
 #      /api, /oauth2, /login, /logout, /whoami, /actuator to the Dockerized BFF on
 #      http://localhost:8082, so the browser only ever talks to Vite's own origin.
-#   3. Everything in Docker (`--profile client`): the web client and BFF run as containers too,
+#   3. Everything in Docker (`--profile client`): Studio and BFF run as containers too,
 #      fronted by the `nginx` service below on http://localhost:8080 — since Vite's dev-server
-#      proxy isn't available here, this proxy is what makes the (containerized) web client and
+#      proxy isn't available here, this proxy is what makes the (containerized) Studio and
 #      BFF same-origin instead, the same way a production reverse proxy would.
 #
-# The web client (apps/web) authenticates through the BFF, not Keycloak directly — see
+# Studio (apps/web) authenticates through the BFF, not Keycloak directly — see
 # apps/bff's Javadoc.
 
 name: dlb-dev
@@ -175,7 +175,7 @@ services:
   # ---------------------------------------------------------------------------
   # Dialogue Branch BFF (optional, start with --profile api)
   #
-  # Backend-for-Frontend for the web client (apps/web) — see apps/bff's Javadoc.
+  # Backend-for-Frontend for Dialogue Branch Studio (apps/web) — see apps/bff's Javadoc.
   # ---------------------------------------------------------------------------
 
   bff:
@@ -193,7 +193,7 @@ services:
       DLB_BFF_KEYCLOAK_BROWSER_BASE_URL: http://localhost:8081/
       DLB_BFF_API_BASE_URL: http://dlb-web-service:8089/dlb-web-service
       DLB_BFF_OAUTH2_CLIENT_SECRET: dev-secret
-      # The web client's own dev server (npm run dev), a different origin than this BFF — see
+      # Dialogue Branch Studio's own dev server (npm run dev), a different origin than this BFF — see
       # the property's own comment in apps/bff's application.yml for why this can't just be "/".
       DLB_BFF_POST_LOGIN_REDIRECT_URL: http://localhost:5173/
       DLB_BFF_MARIADB_HOST: mariadb
@@ -213,7 +213,7 @@ services:
   # ---------------------------------------------------------------------------
   # "client" profile — everything containerized (issue #81)
   #
-  # A second BFF instance and the web client itself, both fronted by nginx below on
+  # A second BFF instance and Dialogue Branch Studio itself, both fronted by nginx below on
   # http://localhost:8080, the single origin a browser talks to for this profile. Not exposed on
   # their own host ports — only nginx is a genuine entry point here, matching a real deployment.
   # ---------------------------------------------------------------------------
@@ -251,7 +251,7 @@ services:
       mariadb:
         condition: service_healthy
 
-  # The web client's own static build (apps/web/Dockerfile) — its default build args already talk
+  # Dialogue Branch Studio's own static build (apps/web/Dockerfile) — its default build args already talk
   # to the BFF via same-origin relative paths (/api/v1 etc.), which is exactly what nginx below
   # provides, so nothing needs overriding here.
   web:

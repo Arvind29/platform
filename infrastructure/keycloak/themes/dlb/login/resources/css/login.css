@@ -1,8 +1,8 @@
 /*
  * Dialogue Branch Keycloak login theme.
  *
- * Colours and fonts mirror apps/web/src/assets/css/theme.css and fonts.css (the DLB web
- * client's Tailwind design tokens), and the layout mirrors the web client's former
+ * Colours and fonts mirror apps/web/src/assets/css/theme.css and fonts.css (Dialogue Branch
+ * Studio's Tailwind design tokens), and the layout mirrors Studio's former
  * LoginPage.vue, so the Keycloak-hosted login screen feels like part of the same product.
  */
 
@@ -196,7 +196,7 @@ body.dlb-body {
     padding: 0 0.85rem;
 }
 
-/* FontAwesome free-solid "eye" / "eye-slash" glyphs (same icons the DLB web client uses via
+/* FontAwesome free-solid "eye" / "eye-slash" glyphs (same icons Dialogue Branch Studio uses via
    @fortawesome/free-solid-svg-icons), rendered as CSS masks so they inherit the theme colour. */
 .dlb-icon-eye, .dlb-icon-eye-slash {
     display: inline-block;

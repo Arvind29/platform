@@ -40,7 +40,7 @@ When a project is stored in the Web Service's database rather than as files, its
 :::
 
 ::: info Note
-When a project is authored through the web client's visual editor (see [Dialogue Branch Web Services](/web-services/)), it is additionally identified by a `projectSlug` — a short, URL-safe identifier used throughout the Web Service API to select which project a call applies to. This is the same identifier as the `slug` attribute described below; the Web Service assigns it when the project is created, and writes it back into the exported `dlb-project.xml` file's root element.
+When a project is authored through Dialogue Branch Studio's visual editor (see [Dialogue Branch Web Services](/web-services/)), it is additionally identified by a `projectSlug` — a short, URL-safe identifier used throughout the Web Service API to select which project a call applies to. This is the same identifier as the `slug` attribute described below; the Web Service assigns it when the project is created, and writes it back into the exported `dlb-project.xml` file's root element.
 :::
 
 ### Language Map Metadata

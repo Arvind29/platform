@@ -26,7 +26,7 @@ The header consists of a series of lines, each with a `key: value`-pair. The two
 * `title` — a String matching `[A-Za-z0-9_-]+` that uniquely identifies this *Node* within this dialogue (matching is case-insensitive).
 * `speaker` — a String that defines the name of the *Agent* speaking in this *Node*. Required for every node, **except** a node titled [`End`](#ending-a-dialogue), whose speaker is ignored even if present.
 
-You are free to define other key-value pairs that might serve as meta-data in your application. The visual editor in the web client (see [Dialogue Branch Web Services](/web-services/)) additionally recognises the following reserved tags:
+You are free to define other key-value pairs that might serve as meta-data in your application. The visual editor in Dialogue Branch Studio (see [Dialogue Branch Web Services](/web-services/)) additionally recognises the following reserved tags:
 
 * `colorId` — a number specifying a colour used by the node-graph editor to visually group or distinguish nodes.
 * `position` — a pair of `x,y` coordinates (comma-separated integers) used to position the node on the editor's canvas. Malformed values silently default to `0,0`.

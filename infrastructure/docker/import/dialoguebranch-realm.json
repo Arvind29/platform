@@ -695,7 +695,7 @@
     {
       "clientId": "dlb-bff",
       "name": "Dialogue Branch BFF",
-      "description": "Backend-for-Frontend for the Dialogue Branch web client",
+      "description": "Backend-for-Frontend for Dialogue Branch Studio",
       "surrogateAuthRequired": false,
       "enabled": true,
       "alwaysDisplayInConsole": false,
