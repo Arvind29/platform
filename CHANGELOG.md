@@ -11,7 +11,7 @@ and this project adheres to a single monorepo-wide version declared in `global.j
 
 - The web client is now called "Dialogue Branch Studio" in its own UI: the footer info bar, the
   browser tab title, the project-selector subtitle, and the version-mismatch page.
-- The web client's balloon test view steps the speech-bubble font size down for long statements
+- Studio's balloon test view steps the speech-bubble font size down for long statements
   (to `text-base` past ~400 characters, `text-sm` past ~900) so more of a long node fits before
   the reader has to scroll the page. Within one dialogue run the size only ever shrinks — a
   shorter node after a long one keeps the reduced size instead of bouncing back up.
@@ -20,13 +20,13 @@ and this project adheres to a single monorepo-wide version declared in `global.j
   `defaultLanguageName`. The old names are no longer accepted (a request using them fails with
   "Field 'sourceLanguageCode' is required."). This aligns the create request with the rest of
   the API, which already uses `sourceLanguage*` everywhere else (the create response, `GET
-  /v1/project/get-project`, and the database). The bundled web client is updated to match.
+  /v1/project/get-project`, and the database). The bundled Dialogue Branch Studio is updated to match.
 
 ### Added
 
-- The debug bar at the bottom of the web client's dialogue test views now also shows the node
+- The debug bar at the bottom of Studio's dialogue test views now also shows the node
   the current step is in, next to the ephemeral session / logged-dialogue id.
-- The web client's admin-only "Technical Information" dialog now also shows the Web Service's
+- Studio's admin-only "Technical Information" dialog now also shows the Web Service's
   version and build time, its configured base URL (`dlb.base-url`), the host/port/scheme it
   observed on the incoming request (as seen by the service itself — behind the BFF proxy this is
   the address the proxy connected to, not a browser-facing URL), and the Keycloak base URL and
@@ -35,7 +35,7 @@ and this project adheres to a single monorepo-wide version declared in `global.j
 
 ### Fixed
 
-- Text-mode dialogue testing in the web client no longer shows a fresh dialogue's reply options
+- Text-mode dialogue testing in Studio no longer shows a fresh dialogue's reply options
   greyed out (or with one option falsely highlighted as already chosen). The component tracked
   past reply selections by step index without clearing them when the dialogue was restarted,
   reloaded, or when switching to another test tab, so stale entries carried over onto the new
@@ -44,14 +44,14 @@ and this project adheres to a single monorepo-wide version declared in `global.j
   and spacer height were shared by every tab, so switching tabs left the view at whatever offset
   the previous tab had. Each tab's offset is now saved on the way out and restored on the way
   back in (a tab shown for the first time still pins to the latest statement).
-- Dialogue statement text with paragraph breaks now renders as separate paragraphs in the web
-  client's balloon and text test views instead of collapsing into one block. Blank lines in a
+- Dialogue statement text with paragraph breaks now renders as separate paragraphs in Studio's
+  balloon and text test views instead of collapsing into one block. Blank lines in a
   node's body become `<p>` breaks and single line breaks become `<br>`; the newlines were
-  already preserved by the parser and web service, only the client's HTML rendering dropped
+  already preserved by the parser and web service, only Studio's HTML rendering dropped
   them.
-- The web client's status bar no longer reports a misleading "Connected to `<host>` on port
-  `<port>`" line. Since the client talks only to its own origin and the Web Service sits behind
-  the BFF proxy, that host and port were the client's own, not the Web Service's. It now reads
+- Studio's status bar no longer reports a misleading "Connected to `<host>` on port
+  `<port>`" line. Since Studio talks only to its own origin and the Web Service sits behind
+  the BFF proxy, that host and port were Studio's own, not the Web Service's. It now reads
   simply "Connected to Web Service v`<version>`." (the version is still the real one, fetched
   through the proxy), or "Could not connect to the Web Service." on failure.
 - The "Create Project" wizard's third step now calls the setting the project's "Source Language"

@@ -77,7 +77,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 /**
- * Session-cookie auth for the Dialogue Branch web client: this service performs the Authorization
+ * Session-cookie auth for Dialogue Branch Studio: this service performs the Authorization
  * Code + PKCE exchange against Keycloak and keeps the resulting access/refresh token
  * server-side, in the HTTP session (persisted to MariaDB via Spring Session, not this JVM's own
  * heap — see {@code application.yml}'s {@code spring.session} block). The browser only ever holds
@@ -218,7 +218,7 @@ public class SecurityConfig {
                 // forward would itself be treated as an unauthenticated request and redirected to
                 // login, silently replacing the 401 the client is supposed to see.
                 .requestMatchers("/error").permitAll()
-                // The web client's pre-login reachability check (see service-health.js) calls
+                // Studio's pre-login reachability check (see service-health.js) calls
                 // this same public, unauthenticated Web Service endpoint through the proxy —
                 // ApiProxyController forwards it without a bearer token when there's no session
                 // (see its accessTokenOrNull()). Every other /api/** path stays authenticated.
@@ -235,7 +235,7 @@ public class SecurityConfig {
             .logout(logout -> logout
                 .logoutSuccessHandler(logoutSuccessHandler))
             .exceptionHandling(exceptionHandling -> exceptionHandling
-                // A fetch/XHR call from the web client to a protected /api/** or /whoami path
+                // A fetch/XHR call from Studio to a protected /api/** or /whoami path
                 // with no (or an expired) session must not receive oauth2Login's default 302
                 // redirect to Keycloak — the browser would transparently follow it and hand the
                 // frontend Keycloak's login HTML instead of the 401 it needs to detect "please

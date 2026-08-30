@@ -5,7 +5,7 @@ The Dialogue Branch Web Service is a [JAVA Spring Boot Application](https://spri
 ```mermaid
 flowchart LR
     Client["3rd party Dialogue Branch client"]
-    WebClient["Dialogue Branch Studio (apps/studio)"]
+    Studio["Dialogue Branch Studio (apps/studio)"]
     BFF["BFF (apps/bff)"]
     EVS["External Variable Service"]
 
@@ -17,12 +17,12 @@ flowchart LR
     end
 
     Client <--> WS
-    WebClient <--> BFF
+    Studio <--> BFF
     BFF <--> WS
     WS <--> EVS
 
     classDef external stroke-dasharray: 5 5
-    class Client,WebClient,EVS external
+    class Client,Studio,EVS external
 ```
 
 *The overall Dialogue Branch Web Architecture. The Web Service acts as a REST API wrapper around the Dialogue Branch Core. A direct API client attaches its own Bearer token and talks to the Web Service directly; Studio instead goes through the BFF, which never lets the browser hold a token.*

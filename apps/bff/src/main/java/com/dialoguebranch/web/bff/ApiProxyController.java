@@ -44,12 +44,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestClient;
 
 /**
- * Proxies every call under {@code /api} from the Dialogue Branch web client to the Dialogue
+ * Proxies every call under {@code /api} from Dialogue Branch Studio to the Dialogue
  * Branch Web Service, attaching the current session's OAuth2 access token — obtained, and
  * transparently refreshed, from server-side storage the browser never sees.
  *
  * <p>One path, {@code GET /api/v1/info/all}, is reachable without a session at all (see
- * SecurityConfig's {@code permitAll} rule for it — the web client's pre-login reachability check
+ * SecurityConfig's {@code permitAll} rule for it — Studio's pre-login reachability check
  * calls it): {@link #accessTokenOrNull} forwards that request with no {@code Authorization}
  * header, matching how the Web Service itself already treats that one endpoint as public.</p>
  *

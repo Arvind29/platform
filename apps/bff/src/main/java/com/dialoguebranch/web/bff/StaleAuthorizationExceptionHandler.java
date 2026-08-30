@@ -42,7 +42,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
  * {@link org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager} lookup can
  * fail even though the caller looks authenticated. Left uncaught, that either surfaces as a bare
  * 500 or falls into Spring's default reauthorization redirect, which an XHR call follows
- * cross-origin into Keycloak and gets blocked by CORS, wedging the web client with nothing to
+ * cross-origin into Keycloak and gets blocked by CORS, wedging Studio with nothing to
  * recover from. Catching it here instead, for every controller, clears the stale session and
  * returns a plain 401, the same signal an unauthenticated request already gets (see
  * {@code SecurityConfig.apiAuthenticationEntryPoint}), so the client's existing 401 handler takes
