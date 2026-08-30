@@ -18,11 +18,11 @@ function retry() {
             <FontAwesomeIcon icon="fa-solid fa-arrows-rotate" class="text-4xl text-orange-darker mb-4" />
             <h1 class="font-bold text-lg mb-2">Update Available</h1>
             <p class="text-sm text-grey-dark mb-4">
-                This page is running a different version of the Dialogue Branch web client than
+                This page is running a different version of Dialogue Branch Studio than
                 the web service expects. Reloading the page usually fixes this.
             </p>
             <ul class="text-xs text-left text-grey-dark mb-6 space-y-1">
-                <li>Web client: <span class="font-mono">v{{ clientVersion }}</span></li>
+                <li>Studio: <span class="font-mono">v{{ clientVersion }}</span></li>
                 <li>Web service: <span class="font-mono">v{{ serviceVersion }}</span></li>
             </ul>
             <button

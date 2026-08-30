@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { useClient } from '@/composables/client.js';
 import { describeError } from '@/composables/error-message.js';
 import { showError, dismissError } from '@/composables/error-toast.js';
-import { DLB_APP_MODE_DRAFT } from '@/dlb-lib/WCTAClientState.js';
+import { DLB_APP_MODE_DRAFT } from '@/dlb-lib/StudioClientState.js';
 
 const props = defineProps({
     name: String,

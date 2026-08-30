@@ -6,13 +6,13 @@ import { cookiesVersion } from '../../dlb-lib/util/DocumentFunctions.js';
 
 const state = inject('state');
 
-// Backed by the `state.debugConsoleVisible` cookie (see WCTAClientState.js) so the debug
+// Backed by the `state.debugConsoleVisible` cookie (see StudioClientState.js) so the debug
 // console's open/closed state survives a page reload.
 const open = computed({
     get: () => state.value.debugConsoleVisible,
     set: (val) => { state.value.debugConsoleVisible = val; },
 });
-// Backed by the `state.debugConsoleShow{Api,Events,Cookies}` cookies (see WCTAClientState.js)
+// Backed by the `state.debugConsoleShow{Api,Events,Cookies}` cookies (see StudioClientState.js)
 // so the filter selection survives a page reload.
 const showApi = computed({
     get: () => state.value.debugConsoleShowApi,
@@ -48,7 +48,7 @@ const keyword = ref('');
 const expanded = ref(new Set());
 const logBody = ref(null);
 
-// Backed by the `state.debugConsole{Width,Height}` cookies (see WCTAClientState.js). Resizing
+// Backed by the `state.debugConsole{Width,Height}` cookies (see StudioClientState.js). Resizing
 // updates these refs live for a smooth drag; the cookies are only written once the drag ends
 // (see onResizeEnd below), same as ResizablePanels.vue does for the side panels.
 const panelWidth = ref(state.value.debugConsoleWidth ?? 720);

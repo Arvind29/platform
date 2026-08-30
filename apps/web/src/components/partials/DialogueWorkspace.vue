@@ -6,7 +6,7 @@ const state = inject('state');
 import { logEvent } from '@/composables/debug-log.js';
 import { describeError } from '@/composables/error-message.js';
 import { showError, dismissError } from '@/composables/error-toast.js';
-import { DIALOGUE_WORKSPACE_STYLE_TEXT, DIALOGUE_WORKSPACE_STYLE_BALLOONS, DIALOGUE_WORKSPACE_STYLE_EDIT, DIALOGUE_WORKSPACE_STYLE_TRANSLATE, DLB_APP_MODE_DRAFT } from '@/dlb-lib/WCTAClientState.js';
+import { DIALOGUE_WORKSPACE_STYLE_TEXT, DIALOGUE_WORKSPACE_STYLE_BALLOONS, DIALOGUE_WORKSPACE_STYLE_EDIT, DIALOGUE_WORKSPACE_STYLE_TRANSLATE, DLB_APP_MODE_DRAFT } from '@/dlb-lib/StudioClientState.js';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import IconButton from '../widgets/IconButton.vue';
 import BalloonDialogueComponent from './BalloonDialogueComponent.vue';
@@ -53,7 +53,7 @@ const availableModes = computed(() =>
         ? modes
         : modes.filter((m) => m.name !== 'edit' && m.name !== 'translate'));
 
-// Backed by the `state.dialogueWorkspaceStyle` cookie (see WCTAClientState.js) so the chosen
+// Backed by the `state.dialogueWorkspaceStyle` cookie (see StudioClientState.js) so the chosen
 // mode survives a page reload.
 const selectedMode = computed({
     get: () => {

@@ -9,7 +9,7 @@ import { useClient } from '../../composables/client.js';
 import { describeError } from '../../composables/error-message.js';
 import { showError, dismissError } from '../../composables/error-toast.js';
 import { useLatestRequest } from '../../composables/latest-request.js';
-import { DLB_APP_MODE_DRAFT } from '../../dlb-lib/WCTAClientState.js';
+import { DLB_APP_MODE_DRAFT } from '../../dlb-lib/StudioClientState.js';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 const state = inject('state');

@@ -38,25 +38,25 @@ export const DLB_APP_MODE_LIVE = "LIVE";
 export const DLB_APP_MODE_DRAFT = "DRAFT";
 
 /**
- * The WCTAClientState is the client-specific ClientState object for the Dialogue Branch Web Client Test Application.
+ * The StudioClientState is the client-specific ClientState object for Dialogue Branch Studio.
  *
  * @extends ClientState
  * @author Harm op den Akker (Fruit Tree Labs)
  */
-export class WCTAClientState extends ClientState {
+export class StudioClientState extends ClientState {
 
     // ------------------------------------
     // ---------- Constructor(s) ----------
     // ------------------------------------
 
     /**
-     * Creates an instance of a WCTAClientState object to keep track of the state of the web client test application.
+     * Creates an instance of a StudioClientState object to keep track of the state of Dialogue Branch Studio.
      * Log information is passed through the provided Logger instance.
      * @param {Logger} logger A Logger instance that may be used to log information.
      */
     constructor(logger) {
         super(logger);
-        this._LOGTAG = "WCTAClientState";
+        this._LOGTAG = "StudioClientState";
         this._dialogueWorkspaceStyle = DIALOGUE_WORKSPACE_STYLE_BALLOONS;
         this._mode = DLB_APP_MODE_LIVE;
         this._selectedProject = null;

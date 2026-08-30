@@ -12,7 +12,7 @@ import HeaderMenuItem from '../widgets/HeaderMenuItem.vue';
 import DialogueWorkspace from '../partials/DialogueWorkspace.vue';
 import ResizablePanels from '../widgets/ResizablePanels.vue';
 import VariableBrowser from '../partials/VariableBrowser.vue';
-import { DLB_APP_MODE_LIVE, DLB_APP_MODE_DRAFT } from '../../dlb-lib/WCTAClientState.js';
+import { DLB_APP_MODE_LIVE, DLB_APP_MODE_DRAFT } from '../../dlb-lib/StudioClientState.js';
 import { showError } from '../../composables/error-toast.js';
 import { describeError } from '../../composables/error-message.js';
 
@@ -565,7 +565,7 @@ function onWorkspaceModeChanged(mode) {
         <footer class="shrink-0 hidden sm:flex items-center gap-4 px-4 py-1 bg-grey-lighter border-t border-grey-light font-mono text-[11px] text-gray-400">
             <span>Logged in as <span class="text-gray-500 font-semibold">{{ state.user.name }}</span></span>
             <span class="text-grey-light">|</span>
-            <span>Dialogue Branch Web Client v{{ appVersion }}</span>
+            <span>Dialogue Branch Studio v{{ appVersion }}</span>
             <span class="text-grey-light">|</span>
             <span>{{ connectionInfo }}</span>
             <button

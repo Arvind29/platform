@@ -161,7 +161,7 @@ function confirmDelete() {
         </div>
 
         <img class="block pt-8 w-[240px] sm:w-[480px]" src="../../assets/img/dlb-long.png" alt="Dialogue Branch" />
-        <div class="mt-2 font-title font-bold">Web Client Test Application</div>
+        <div class="mt-2 font-title font-bold">Studio</div>
 
         <div class="w-full px-4 mt-8 pb-12 max-w-3xl mx-auto">
             <div class="flex items-center justify-between mb-4">
