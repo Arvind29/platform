@@ -24,6 +24,12 @@ and this project adheres to a single monorepo-wide version declared in `global.j
 
 ### Added
 
+- The Dialogue Browser has a filter + sort strip below its header. The filter box narrows the
+  tree to matching dialogues/folders (folders auto-expand while filtering, without disturbing
+  the saved expand state). The sort control offers **Default** (folders first, then alphabetical
+  — the API's own order) and **Name (A–Z / Z–A)** (a flat sort with folders and dialogues
+  intermixed) in both modes, plus **Last updated** and **Size** (by node count, folders kept
+  grouped first) in Authoring Mode.
 - The authoring `list-dialogues` response now includes each draft dialogue's `updatedAt` and
   `nodeCount`, and is ordered folders-first, so a client can offer sort-by-last-updated and
   sort-by-size in Authoring Mode. Node counts come from a single grouped query (no node content

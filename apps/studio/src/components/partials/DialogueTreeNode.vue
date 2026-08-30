@@ -5,12 +5,17 @@ import { useClient } from '@/composables/client.js';
 import { describeError } from '@/composables/error-message.js';
 import { showError, dismissError } from '@/composables/error-toast.js';
 import { DLB_APP_MODE_DRAFT } from '@/StudioClientState.js';
+import { sortTreeLevel } from '@/composables/dialogue-tree.js';
 
 const props = defineProps({
     name: String,
     node: Object,
     path: String,
     openFolders: Object,
+    sortMode: String,
+    // While a filter is active every folder shows expanded so matches are visible, without
+    // touching the user's saved openFolders state.
+    forceExpanded: Boolean,
     depth: {
         type: Number,
         default: 0,
@@ -29,15 +34,10 @@ function openDialogue() {
 }
 
 const isFile = computed(() => !!props.node._file);
-const isOpen = computed(() => !!props.openFolders[props.path]);
+const isOpen = computed(() => props.forceExpanded || !!props.openFolders[props.path]);
 const children = computed(() => {
     if (isFile.value) return [];
-    return Object.entries(props.node._children).sort(([nameA, a], [nameB, b]) => {
-        const aIsFolder = !a._file;
-        const bIsFolder = !b._file;
-        if (aIsFolder !== bIsFolder) return aIsFolder ? -1 : 1;
-        return nameA.localeCompare(nameB);
-    });
+    return sortTreeLevel(Object.entries(props.node._children), props.sortMode);
 });
 
 // ---- Restore (revert a pending deletion) ----
@@ -120,9 +120,10 @@ function referenceDialogueCount(references) {
         <!-- Folder -->
         <div
             v-if="!isFile"
-            class="cursor-pointer flex items-center gap-1 font-title font-black text-xs p-1 text-gray-600 hover:text-gray-800 select-none"
+            class="flex items-center gap-1 font-title font-black text-xs p-1 text-gray-600 select-none"
+            :class="forceExpanded ? 'cursor-default' : 'cursor-pointer hover:text-gray-800'"
             :style="{ paddingLeft: (depth * 12 + 4) + 'px' }"
-            @click="$emit('toggleFolder', path)"
+            @click="!forceExpanded && $emit('toggleFolder', path)"
         >
             <FontAwesomeIcon :icon="isOpen ? 'fa-solid fa-folder-open' : 'fa-solid fa-folder'" class="text-orange-dark w-3.5" />
             <span>{{ name }}</span>
@@ -137,6 +138,8 @@ function referenceDialogueCount(references) {
                 :node="childNode"
                 :path="path + '/' + childName"
                 :openFolders="openFolders"
+                :sortMode="sortMode"
+                :forceExpanded="forceExpanded"
                 :depth="depth + 1"
                 @toggleFolder="$emit('toggleFolder', $event)"
                 @openDialogue="(name) => $emit('openDialogue', name)"

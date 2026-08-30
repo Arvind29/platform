@@ -3,12 +3,16 @@ export default { inheritAttrs: false };
 </script>
 
 <script setup>
-import { computed, inject, ref, useAttrs } from 'vue';
+import { computed, inject, ref, watch, useAttrs } from 'vue';
 const attrs = useAttrs();
 import { useClient } from '../../composables/client.js';
 import { describeError } from '../../composables/error-message.js';
 import { showError, dismissError } from '../../composables/error-toast.js';
 import { useLatestRequest } from '../../composables/latest-request.js';
+import {
+    SORT_DEFAULT, SORT_NAME_ASC, SORT_NAME_DESC, SORT_UPDATED_DESC, SORT_UPDATED_ASC,
+    SORT_SIZE_DESC, SORT_SIZE_ASC, AUTHORING_ONLY_SORT_MODES, sortTreeLevel, filterTree,
+} from '../../composables/dialogue-tree.js';
 import { DLB_APP_MODE_DRAFT } from '../../StudioClientState.js';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
@@ -33,13 +37,40 @@ const client = useClient();
 
 const isDraftMode = computed(() => state.value.mode === DLB_APP_MODE_DRAFT);
 
-const tree = ref([]);
+// The tree is rebuilt only when a new list arrives (rawRoot); re-sorting is a cheap re-derivation
+// that doesn't need a refetch.
+const rawRoot = ref({});
+const sortMode = ref(SORT_DEFAULT);
+const sortOptions = computed(() => [
+    { value: SORT_DEFAULT, label: 'Default (folders first)' },
+    { value: SORT_NAME_ASC, label: 'Name (A–Z)' },
+    { value: SORT_NAME_DESC, label: 'Name (Z–A)' },
+    ...(isDraftMode.value ? [
+        { value: SORT_UPDATED_DESC, label: 'Last updated (newest)' },
+        { value: SORT_UPDATED_ASC, label: 'Last updated (oldest)' },
+        { value: SORT_SIZE_DESC, label: 'Size (largest)' },
+        { value: SORT_SIZE_ASC, label: 'Size (smallest)' },
+    ] : []),
+]);
+const searchQuery = ref('');
+const isSearching = computed(() => searchQuery.value.trim().length > 0);
+const tree = computed(() => sortTreeLevel(
+    Object.entries(filterTree(rawRoot.value, searchQuery.value)), sortMode.value));
+
+// The Authoring-only sort keys have no meaning against Live Mode's list (every dialogue shares a
+// publish time, and node counts aren't returned) — fall back to Default when leaving Authoring Mode.
+watch(isDraftMode, (draft) => {
+    if (!draft && AUTHORING_ONLY_SORT_MODES.includes(sortMode.value)) {
+        sortMode.value = SORT_DEFAULT;
+    }
+});
+
 const openFolders = ref({});
 const ongoingConfirm = ref(null); // { dialogueName, loggedDialogueId, secondsSinceLastEngagement, alreadyOpenTabId? }
 const cancelConfirm = ref(false);
 const reloading = ref(false);
 
-// entries: array of { name, isPublished, isNew, isChanged, isDeleted }
+// entries: array of { name, isPublished, isNew, isChanged, isDeleted, updatedAt?, nodeCount? }
 function buildTree(entries) {
     const root = {};
     for (const entry of entries) {
@@ -56,6 +87,8 @@ function buildTree(entries) {
             _isNew: entry.isNew,
             _isChanged: entry.isChanged,
             _isDeleted: entry.isDeleted,
+            _updatedAt: entry.updatedAt,
+            _nodeCount: entry.nodeCount,
         };
     }
     return root;
@@ -107,6 +140,8 @@ function listDialogues() {
                 isNew: d.isNew,
                 isChanged: d.isChanged,
                 isDeleted: d.isDeleted,
+                updatedAt: d.updatedAt,
+                nodeCount: d.nodeCount,
             }));
         } else {
             entries = (result.dialogueNames ?? []).map((name) => ({
@@ -121,13 +156,7 @@ function listDialogues() {
         const listUnchanged = newKey === previousEntriesKey;
         previousEntriesKey = newKey;
 
-        const root = buildTree(entries);
-        tree.value = Object.entries(root).sort(([nameA, a], [nameB, b]) => {
-            const aIsFolder = !a._file;
-            const bIsFolder = !b._file;
-            if (aIsFolder !== bIsFolder) return aIsFolder ? -1 : 1;
-            return nameA.localeCompare(nameB);
-        });
+        rawRoot.value = buildTree(entries);
         if (!listUnchanged) openFolders.value = {};
     })
     .catch((error) => {
@@ -263,6 +292,37 @@ defineExpose({
                 />
             </template>
         </MainPagePanelHeader>
+
+        <!-- Filter + sort strip -->
+        <div class="flex items-center gap-1.5 px-1 sm:ml-1">
+            <div class="relative flex-1 min-w-0">
+                <FontAwesomeIcon icon="fa-solid fa-magnifying-glass" class="absolute left-2 top-1/2 -translate-y-1/2 text-grey-dark text-[10px] pointer-events-none" />
+                <input
+                    v-model="searchQuery"
+                    type="text"
+                    placeholder="Filter dialogues…"
+                    class="w-full h-7.5 pl-6 pr-6 text-xs font-title border border-grey-light rounded-lg bg-white focus:outline-none focus:border-orange-dark"
+                    @keyup.esc="searchQuery = ''"
+                />
+                <button
+                    v-if="searchQuery"
+                    type="button"
+                    title="Clear filter"
+                    class="absolute right-1.5 top-1/2 -translate-y-1/2 text-grey-dark hover:text-orange-dark cursor-pointer"
+                    @click="searchQuery = ''"
+                >
+                    <FontAwesomeIcon icon="fa-solid fa-xmark" class="text-[10px]" />
+                </button>
+            </div>
+            <select
+                v-model="sortMode"
+                title="Sort dialogues"
+                class="h-7.5 px-2 shrink-0 border border-grey-light rounded-lg text-xs font-title focus:outline-none focus:border-orange-dark bg-white cursor-pointer"
+            >
+                <option v-for="opt in sortOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+            </select>
+        </div>
+
         <MainPagePanelContainer class="p-1 gap-1 flex flex-col sm:ml-1">
             <div v-if="showNewDialogueInput" class="flex items-center gap-1 p-1">
                 <input
@@ -281,6 +341,9 @@ defineExpose({
                     <FontAwesomeIcon icon="fa-solid fa-xmark" />
                 </button>
             </div>
+            <div v-if="isSearching && tree.length === 0" class="font-title text-xs italic text-grey-dark p-2">
+                No dialogues match “{{ searchQuery.trim() }}”.
+            </div>
             <DialogueTreeNode
                 v-for="[name, node] in tree"
                 :key="name"
@@ -288,6 +351,8 @@ defineExpose({
                 :node="node"
                 :path="name"
                 :openFolders="openFolders"
+                :sortMode="sortMode"
+                :forceExpanded="isSearching"
                 @toggleFolder="toggleFolder"
                 @openDialogue="(name) => $emit('openDialogue', name)"
                 @dialoguesChanged="listDialogues"
