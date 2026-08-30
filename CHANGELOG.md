@@ -50,6 +50,9 @@ and this project adheres to a single monorepo-wide version declared in `global.j
 
 ### Fixed
 
+- Parsing a project's metadata (`dlb-project.xml`) now rejects a `language-map` whose source or
+  translation languages are missing a `code`, or where two languages share one (case-insensitive),
+  instead of silently building a broken language configuration.
 - `list-dialogues` now returns dialogue names ordered "folders first" — at each `/`-separated
   level, sub-folders come before loose dialogues, then alphabetical (case-insensitive) — instead
   of a plain lexicographic sort. Studio builds its own tree so its Dialogue Browser was already

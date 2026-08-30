@@ -40,7 +40,10 @@ import org.xml.sax.Attributes;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Utility class that parses a Dialogue Branch project metadata XML file into a
@@ -70,8 +73,40 @@ public class ProjectMetaDataParser {
     }
 
     /**
-     * TODO: Test error handling.
-     * TODO: Check for duplicate languages.
+     * Validates the language configuration of a parsed {@link ProjectMetaData}: every source and
+     * translation {@link Language} must have a non-blank {@code code}, and no two of them may
+     * share a code (compared case-insensitively).
+     *
+     * @param languageMap the parsed language map, or {@code null} if the metadata had no
+     *                    {@code language-map} element.
+     * @throws ParseException if a language has no code, or two languages share a code.
+     */
+    private static void validateLanguageMap(LanguageMap languageMap) throws ParseException {
+        if (languageMap == null)
+            return;
+        List<Language> languages = new ArrayList<>();
+        if (languageMap.getSourceLanguage() != null)
+            languages.add(languageMap.getSourceLanguage());
+        languages.addAll(languageMap.getTranslationLanguages());
+
+        Set<String> seenCodes = new HashSet<>();
+        for (Language language : languages) {
+            String code = language.getCode();
+            if (code == null || code.isBlank()) {
+                throw new ParseException("Missing 'code' attribute on a language in the " +
+                        "Dialogue Branch project metadata's language-map.");
+            }
+            if (!seenCodes.add(code.toLowerCase())) {
+                throw new ParseException("Duplicate language code '" + code + "' in the " +
+                        "Dialogue Branch project metadata's language-map: each source and " +
+                        "translation language must have a distinct code.");
+            }
+        }
+    }
+
+    /**
+     * SAX handler for the top-level {@code dlb-project} element and its {@code description} and
+     * {@code language-map} children.
      */
     private static class ProjectMetaDataXMLHandler
             extends AbstractSimpleSAXHandler<ProjectMetaData> {
@@ -128,6 +163,7 @@ public class ProjectMetaDataParser {
 
             if(name.equals("language-map") && languageMapHandler != null) {
                 result.setLanguageMap(languageMapHandler.getObject());
+                validateLanguageMap(result.getLanguageMap());
             }
         }
 
