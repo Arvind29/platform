@@ -245,14 +245,21 @@ public class ActiveDialogue {
 	}
 
 	/**
-	 * Stores the specified variables in the variable store.
+	 * Stores a set of variable values that were captured directly from the user's reply — the
+	 * values entered into the {@code <<input ...>>} fields of the reply option they selected — into
+	 * the {@link VariableStore}, tagged with {@link VariableUpdatedSource#INPUT_REPLY}. Call this
+	 * before {@link #progressDialogue} so the next node's {@code if}/{@code set}/text can already
+	 * see the entered values. The {@code INPUT_REPLY} source is what tells these apart from
+	 * script-set ({@link VariableUpdatedSource#DLB_SCRIPT}), external-service, or web-service-set
+	 * values later on.
 	 *
+	 * <p>This is a convenience for callers that drive an {@link ActiveDialogue} directly. The
+	 * bundled web service does the equivalent itself, straight against its own
+	 * {@link VariableStore} handle, so it does not go through this method.</p>
+	 *
+	 * @param variables the reply-input variable values, keyed by variable name
 	 * @param eventTime the time (in the time zone of the user) of the event that triggered this
-	 *                  change in Dialogue Branch Variables.
-	 * @param variables the variables
-	 * // TODO: It's not exactly clear how this method is supposed to be used. The assumption is now
-	 *                  that this method stores a set of variables that are the direct result from
-	 *                  a user input reply and therefore the chosen INPUT_REPLY source is used.
+	 *                  change in Dialogue Branch Variables
 	 */
 	public void storeReplyInput(Map<String,?> variables, ZonedDateTime eventTime) {
 		variableStore.addAll(variables,true,eventTime,
