@@ -32,6 +32,10 @@ and this project adheres to a single monorepo-wide version declared in `global.j
   past reply selections by step index without clearing them when the dialogue was restarted,
   reloaded, or when switching to another test tab, so stale entries carried over onto the new
   content.
+- Text-mode test tabs now keep their own scroll position. The history view's scroll container
+  and spacer height were shared by every tab, so switching tabs left the view at whatever offset
+  the previous tab had. Each tab's offset is now saved on the way out and restored on the way
+  back in (a tab shown for the first time still pins to the latest statement).
 - The web client's status bar no longer reports a misleading "Connected to `<host>` on port
   `<port>`" line. Since the client talks only to its own origin and the Web Service sits behind
   the BFF proxy, that host and port were the client's own, not the Web Service's. It now reads

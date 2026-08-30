@@ -176,6 +176,11 @@ function createTab() {
         // is in flight — disables reply selection so a fast double-click can't fire two progress
         // requests for the same step (see onSelectReply below).
         awaitingReply: false,
+        // Text-mode scroll offset of this tab's history view. The scroll container is shared by
+        // every tab, so this is saved when switching away and reapplied when switching back (see
+        // the activeTabId watcher). null until the tab has been shown once, so its first view
+        // still pins to the latest statement.
+        textScrollTop: null,
     };
 }
 
@@ -646,10 +651,18 @@ function scrollActiveTabIntoView() {
     });
 }
 
-watch(activeTabId, () => {
+watch(activeTabId, (newId, oldId) => {
     dismissError();
     scrollActiveTabIntoView();
     ensureActiveTabStarted();
+    // The text-mode history view is one scroll container shared by all tabs. Stash the tab we're
+    // leaving at its current offset and reapply the tab we're entering at its own, so switching
+    // back lands where you left off instead of jumping to the latest line.
+    if (textComponent.value) {
+        const previousTab = tabs.value.find(t => t.id === oldId);
+        if (previousTab) previousTab.textScrollTop = textComponent.value.getScrollTop();
+        nextTick(() => textComponent.value?.restoreScroll(activeTab.value.textScrollTop));
+    }
 });
 
 onMounted(() => {

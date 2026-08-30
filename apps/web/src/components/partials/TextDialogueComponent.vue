@@ -23,24 +23,52 @@ const emit = defineEmits([
 const sentinel = useTemplateRef('sentinel');
 const sentinelHeight = ref(0);
 
+// Resize the bottom spacer so the last dialogue step can sit flush against the top of the scroll
+// container (and no further down). Returns the scroll container, or null if not mounted yet.
+function resizeSpacerToLastStep() {
+    const container = sentinel.value?.closest('.overflow-y-auto');
+    const steps = container?.querySelectorAll('.dialogue-step');
+    const lastStep = steps?.[steps.length - 1];
+
+    if (container && lastStep) {
+        const stepMarginBottom = parseInt(getComputedStyle(lastStep).marginBottom);
+        sentinelHeight.value = Math.max(0, container.clientHeight - lastStep.offsetHeight - stepMarginBottom);
+    } else {
+        sentinelHeight.value = 0;
+    }
+    return container ?? null;
+}
+
 const scrollToBottom = () => {
     nextTick(() => {
-        const container = sentinel.value?.closest('.overflow-y-auto');
-        const steps = container?.querySelectorAll('.dialogue-step');
-        const lastStep = steps?.[steps.length - 1];
-
-        if (container && lastStep) {
-            const stepMarginBottom = parseInt(getComputedStyle(lastStep).marginBottom);
-            sentinelHeight.value = Math.max(0, container.clientHeight - lastStep.offsetHeight - stepMarginBottom);
-        } else {
-            sentinelHeight.value = 0;
-        }
-
+        resizeSpacerToLastStep();
         nextTick(() => sentinel.value?.scrollIntoView({ behavior: 'smooth' }));
     });
 };
 
-defineExpose({ scrollToBottom });
+// The scroll container is a single element shared by every tab, so its offset can't just live in
+// the DOM across a tab switch — DialogueWorkspace reads it here on the way out and hands it back
+// via restoreScroll() on the way in (see its activeTabId watcher).
+function getScrollTop() {
+    return sentinel.value?.closest('.overflow-y-auto')?.scrollTop;
+}
+
+// Re-fit the spacer to this tab's steps, then reapply a saved offset — or, the first time a tab
+// is shown (savedTop == null), pin the latest statement to the top as usual.
+function restoreScroll(savedTop) {
+    nextTick(() => {
+        const container = resizeSpacerToLastStep();
+        nextTick(() => {
+            if (savedTop != null) {
+                container?.scrollTo({ top: savedTop });
+            } else {
+                sentinel.value?.scrollIntoView();
+            }
+        });
+    });
+}
+
+defineExpose({ scrollToBottom, getScrollTop, restoreScroll });
 
 // Records which reply the user picked on each already-answered step, so it stays highlighted
 // while its siblings grey out. Keyed by the step object itself rather than its index: those
