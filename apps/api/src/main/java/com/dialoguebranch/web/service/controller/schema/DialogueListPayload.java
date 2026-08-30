@@ -85,14 +85,41 @@ public class DialogueListPayload extends JsonObject {
     }
 
     /**
-     * Takes a String array of dialogue names, and returns the sorted list.
-     * TODO: Make sure the sorting takes into account the expected ordering of "folders first"
+     * Takes a String array of dialogue names and returns a new array sorted the way a file
+     * browser would show it: a {@code /} in a name separates folder levels, and at every level
+     * sub-folders are listed before loose dialogues, with entries then ordered alphabetically
+     * (case-insensitive). The input array is not modified.
+     *
      * @param dialogueNames the list of dialogue names to sort.
-     * @return a sorted list of dialogues.
+     * @return a new, sorted array of dialogue names.
      */
     private String[] sortDialogueNames(String[] dialogueNames) {
-        Arrays.sort(dialogueNames);
-        return dialogueNames;
+        String[] sorted = dialogueNames.clone();
+        Arrays.sort(sorted, DialogueListPayload::compareFoldersFirst);
+        return sorted;
+    }
+
+    /**
+     * Compares two {@code /}-separated dialogue names "folders first": at the first path level
+     * where they differ, an entry that descends into a sub-folder sorts before one that is a
+     * loose dialogue; otherwise the level is compared case-insensitively. Names that differ only
+     * by case are given a stable order by a final case-sensitive comparison.
+     */
+    private static int compareFoldersFirst(String a, String b) {
+        String[] aParts = a.split("/");
+        String[] bParts = b.split("/");
+        int sharedLevels = Math.min(aParts.length, bParts.length);
+        for (int i = 0; i < sharedLevels; i++) {
+            boolean aInFolderHere = i < aParts.length - 1;
+            boolean bInFolderHere = i < bParts.length - 1;
+            if (aInFolderHere != bInFolderHere)
+                return aInFolderHere ? -1 : 1;
+            int levelComparison = aParts[i].compareToIgnoreCase(bParts[i]);
+            if (levelComparison != 0)
+                return levelComparison;
+        }
+        int depthComparison = Integer.compare(aParts.length, bParts.length);
+        return depthComparison != 0 ? depthComparison : a.compareTo(b);
     }
 
 }

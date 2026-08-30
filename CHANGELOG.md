@@ -35,6 +35,10 @@ and this project adheres to a single monorepo-wide version declared in `global.j
 
 ### Fixed
 
+- `list-dialogues` now returns dialogue names ordered "folders first" — at each `/`-separated
+  level, sub-folders come before loose dialogues, then alphabetical (case-insensitive) — instead
+  of a plain lexicographic sort. Studio builds its own tree so its Dialogue Browser was already
+  correct; this fixes the order seen by clients that render the API response directly.
 - Text-mode dialogue testing in Studio no longer shows a fresh dialogue's reply options
   greyed out (or with one option falsely highlighted as already chosen). The component tracked
   past reply selections by step index without clearing them when the dialogue was restarted,
