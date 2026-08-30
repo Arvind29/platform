@@ -32,6 +32,7 @@ import com.dialoguebranch.execution.Variable;
 import com.dialoguebranch.execution.VariableStore;
 import com.dialoguebranch.execution.VariableStoreChange;
 import com.dialoguebranch.execution.VariableUpdatedSource;
+import com.dialoguebranch.web.service.controller.schema.ProjectVariableInfo;
 import com.dialoguebranch.web.service.Application;
 import com.dialoguebranch.web.service.ProtocolVersion;
 import com.dialoguebranch.web.service.QueryRunner;
@@ -172,6 +173,55 @@ public class VariablesController {
 				(protocolVersion, authenticatedUser) -> doGetVariables(delegateUser, variableNameList, timeZone),
 				version, accessToken, response, delegateUser, application, AuthenticationInfo.USER_ROLE_PARTICIPANT, AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
 		}
+	}
+
+	// ------------------------------------------------------------------------------ //
+	// -------------------- END-POINT: "/variables/list-project" -------------------- //
+	// ------------------------------------------------------------------------------ //
+
+	/**
+	 * Lists every Dialogue Branch variable name referenced anywhere in a project's dialogues —
+	 * read or written — whether or not any user currently has a value stored for it. Intended as
+	 * an authoring aid: it lets a client show the full set of variables a project uses, not just
+	 * the subset the logged-in user happens to have values for. Accessible to users with the
+	 * {@code editor} or {@code admin} role.
+	 *
+	 * @param request the {@link HttpServletRequest}.
+	 * @param response the {@link HttpServletResponse}.
+	 * @param version the API version to use, e.g. '1'.
+	 * @param projectSlug the slug of the project whose variable names should be listed.
+	 * @return the project's referenced variable names, sorted alphabetically.
+	 * @throws Exception in case of a network, internal or authentication error.
+	 */
+	@Operation(
+		summary = "List every variable used anywhere in a project's dialogues.",
+		description = "Returns every Dialogue Branch variable read or written by any dialogue in " +
+			"the given project, sorted by name and flagged read/written, regardless of whether a " +
+			"value is stored for it. Accessible for users with the 'editor' or 'admin' role.")
+	@RequestMapping(value="/list-project", method=RequestMethod.GET)
+	public List<ProjectVariableInfo> listProjectVariables(
+		HttpServletRequest request,
+		HttpServletResponse response,
+
+		@Parameter(hidden = true, description = "API Version to use, e.g. '1'")
+		@PathVariable(value = "version")
+		String version,
+
+		@Parameter(description = "The slug of the project whose variable names should be listed")
+		@RequestParam(value = "projectSlug")
+		String projectSlug) throws Exception {
+
+		if (version == null || version.isEmpty())
+			version = ProtocolVersion.getLatestVersion().versionName();
+
+		logger.info("GET /v" + version + "/variables/list-project?projectSlug=" + projectSlug);
+
+		String accessToken = ControllerFunctions.extractAccessToken(request);
+		return QueryRunner.runQuery(
+			(protocolVersion, authenticatedUser) ->
+				application.getApplicationManager().getProjectVariables(projectSlug),
+			version, accessToken, response, "", application,
+			AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
 	}
 
 	/**

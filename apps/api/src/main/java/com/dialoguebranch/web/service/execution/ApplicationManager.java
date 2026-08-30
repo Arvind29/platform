@@ -39,6 +39,7 @@ import com.dialoguebranch.model.common.DialogueBranchProject;
 import com.dialoguebranch.execution.parser.ProjectParser;
 import com.dialoguebranch.execution.parser.ProjectParserResult;
 import com.dialoguebranch.web.service.DlbProperties;
+import com.dialoguebranch.web.service.controller.schema.ProjectVariableInfo;
 import com.dialoguebranch.web.service.repository.DBLoggedDialogueRepository;
 import com.dialoguebranch.web.service.repository.DBUserRepository;
 import com.dialoguebranch.web.service.storage.VariableStoreDatabaseStorageHandler;
@@ -53,6 +54,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -278,6 +280,34 @@ public class ApplicationManager {
 		DialogueBranchProject project = projects.get(projectSlug);
 		if (project == null) return new ArrayList<>();
 		return new ArrayList<>(project.getResourcePointers());
+	}
+
+	/**
+	 * Returns every Dialogue Branch variable referenced anywhere in the named project's loaded
+	 * (published) dialogues, sorted by name, each flagged as read and/or written across the
+	 * project. This is the set of variables the project's content uses, independent of whether any
+	 * user has a value for them. Returns an empty list if no project with that slug is loaded, or
+	 * it has no executable dialogues.
+	 *
+	 * @param projectSlug the project folder name / slug.
+	 * @return the project's referenced variables, sorted by name.
+	 */
+	public List<ProjectVariableInfo> getProjectVariables(String projectSlug) {
+		DialogueBranchProject project = projects.get(projectSlug);
+		if (!(project instanceof ExecutableProject executableProject))
+			return new ArrayList<>();
+		// value: [read, written]
+		Map<String, boolean[]> byName = new TreeMap<>();
+		for (Dialogue dialogue : executableProject.getDialogues().values()) {
+			for (String name : dialogue.getVariablesNeeded())
+				byName.computeIfAbsent(name, k -> new boolean[2])[0] = true;
+			for (String name : dialogue.getVariablesWritten())
+				byName.computeIfAbsent(name, k -> new boolean[2])[1] = true;
+		}
+		List<ProjectVariableInfo> result = new ArrayList<>();
+		byName.forEach((name, flags) ->
+				result.add(new ProjectVariableInfo(name, flags[0], flags[1])));
+		return result;
 	}
 
 	/**

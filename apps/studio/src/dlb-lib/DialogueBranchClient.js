@@ -567,6 +567,20 @@ export class DialogueBranchClient {
         }).then((response) => this._handleResponse(response));
     }
 
+    // Returns the sorted list of variable names referenced anywhere in the given project's
+    // dialogues (read or written), regardless of whether a value is stored for them.
+    listProjectVariables(projectSlug) {
+        const url = this._baseUrl + "/variables/list-project?projectSlug="
+            + encodeURIComponent(projectSlug);
+
+        return this._fetch(url, {
+            method: "GET",
+            headers: { "Content-Type": "application/json" }
+        })
+        .then((response) => this._handleResponse(response))
+        .then((data) => Array.isArray(data) ? data : []);
+    }
+
     getVariables() {
         var url = this._baseUrl + "/variables/get";
 

@@ -26,6 +26,15 @@ and this project adheres to a single monorepo-wide version declared in `global.j
 
 ### Added
 
+- The Variable Browser has a **Values / Used** toggle. **Values** is unchanged — the logged-in
+  user's stored variable values. **Used** is a new read-only reference list of every variable name
+  the project's dialogues reference, so you can look up the exact name of a variable (`$userName`
+  vs `$user_name` …) without having triggered it first; hover a row to copy its name. Names the
+  user already has a value for show solid; ones with no value yet are slightly dimmed
+  ([#64](https://github.com/dialoguebranch/platform/issues/64)).
+- New end-point `GET /v1/variables/list-project?projectSlug=…` (editor/admin) backing the above:
+  returns every variable any of a project's dialogues reads or writes, sorted by name and flagged
+  read/written, regardless of whether a value is stored for it.
 - The Dialogue Browser has a filter + sort strip below its header. The filter box narrows the
   tree to matching dialogues/folders (folders auto-expand while filtering, without disturbing
   the saved expand state). The sort control offers **Default** (folders first, then alphabetical

@@ -3,8 +3,9 @@ export default { inheritAttrs: false };
 </script>
 
 <script setup>
-import { computed, onMounted, ref, useAttrs } from 'vue';
+import { computed, inject, onMounted, ref, useAttrs } from 'vue';
 const attrs = useAttrs();
+const state = inject('state');
 import { useClient } from '@/composables/client.js';
 import { logEvent } from '@/composables/debug-log.js';
 import { describeError } from '@/composables/error-message.js';
@@ -56,23 +57,36 @@ const emit = defineEmits([
 
 const client = useClient();
 
+// Two distinct things, one panel, one at a time (see `mode`):
+//   'values'  — this logged-in user's stored variable values; mutable runtime state.
+//   'project' — every variable name the project's dialogues reference (read/written);
+//               static authoring info, read-only (GET /variables/list-project).
+const mode = ref('values');
 const variables = ref([]);
+const projectVariables = ref([]); // [{ name, read, written }]
 
 const searchQuery = ref('');
 const sortMode = ref('name-asc');
 const isSearching = computed(() => searchQuery.value.trim().length > 0);
 
-// Variables the list actually renders: filtered by name (case-insensitive) and ordered by the
-// chosen mode. The rows still hold the original variable objects, so editing/deleting is
-// unaffected.
-const displayedVariables = computed(() => {
+function filterSort(list) {
     const needle = searchQuery.value.trim().toLowerCase();
-    const filtered = needle
-        ? variables.value.filter((v) => v.name.toLowerCase().includes(needle))
-        : variables.value;
+    const filtered = needle ? list.filter((v) => v.name.toLowerCase().includes(needle)) : list;
     const dir = sortMode.value === 'name-desc' ? -1 : 1;
     return [...filtered].sort((a, b) => dir * a.name.localeCompare(b.name));
-});
+}
+
+// 'values' mode. Rows keep their original variable objects, so editing/deleting is unaffected.
+const displayedVariables = computed(() => filterSort(variables.value));
+// 'project' mode.
+const displayedProjectVariables = computed(() => filterSort(projectVariables.value));
+// Names the current user has a stored value for — used to subtly dim the not-yet-set entries in
+// the 'project' list.
+const storedNames = computed(() => new Set(variables.value.map((v) => v.name)));
+
+const emptyForFilter = computed(() => isSearching.value && (mode.value === 'values'
+    ? displayedVariables.value.length === 0
+    : displayedProjectVariables.value.length === 0));
 
 // Guards against out-of-order responses: loadVariables() can fire in quick succession (e.g. once
 // per dialogue step while testing) with no guarantee the requests resolve in the order they were
@@ -95,6 +109,26 @@ const loadVariables = () => {
         showError(describeError(error));
     });
 };
+
+// The project's variable set doesn't change during a test session, so this stays out of
+// loadVariables() (which the workspace calls every step). Best-effort: a failure just leaves the
+// "Used in project" list empty.
+const loadProjectVariables = () => {
+    const slug = state.value.selectedProject?.slug;
+    if (!slug) return;
+    client.listProjectVariables(slug)
+        .then((vars) => { projectVariables.value = vars; })
+        .catch(() => { projectVariables.value = []; });
+};
+
+function refresh() {
+    loadVariables();
+    loadProjectVariables();
+}
+
+function copyName(name) {
+    navigator.clipboard?.writeText('$' + name).catch(() => {});
+}
 
 defineExpose({
     loadVariables,
@@ -145,7 +179,7 @@ function submitVariable(variable) {
 }
 
 onMounted(() => {
-    loadVariables();
+    refresh();
 });
 </script>
 
@@ -153,7 +187,23 @@ onMounted(() => {
 <div class="flex flex-col gap-1" v-bind="attrs">
         <MainPagePanelHeader title="Variable Browser" class="sm:mr-1">
             <template #buttons>
-                <IconButton icon="fa-solid fa-arrows-rotate" title="Refresh variables" @click="loadVariables" />
+                <div class="flex shrink-0 rounded-lg overflow-hidden border border-grey-light font-title text-[10px] font-semibold">
+                    <button
+                        type="button"
+                        class="px-2 h-7.5 cursor-pointer"
+                        :class="mode === 'values' ? 'bg-orange-dark text-white' : 'bg-white text-grey-dark hover:bg-grey-lighter'"
+                        title="This user's current variable values"
+                        @click="mode = 'values'"
+                    >Values</button>
+                    <button
+                        type="button"
+                        class="px-2 h-7.5 cursor-pointer border-l border-grey-light"
+                        :class="mode === 'project' ? 'bg-orange-dark text-white' : 'bg-white text-grey-dark hover:bg-grey-lighter'"
+                        title="Every variable name used anywhere in this project (read-only)"
+                        @click="mode = 'project'"
+                    >Used</button>
+                </div>
+                <IconButton icon="fa-solid fa-arrows-rotate" title="Refresh variables" @click="refresh" />
                 <IconButton icon="fa-solid fa-angles-right" title="Collapse Variable Browser" @click="emit('collapse')" />
             </template>
         </MainPagePanelHeader>
@@ -190,10 +240,32 @@ onMounted(() => {
         </div>
 
         <MainPagePanelContainer class="sm:mr-1">
-            <div v-if="isSearching && displayedVariables.length === 0" class="font-title text-xs italic text-grey-dark p-2">
+            <div v-if="emptyForFilter" class="font-title text-xs italic text-grey-dark p-2">
                 No variables match “{{ searchQuery.trim() }}”.
             </div>
-            <TransitionGroup tag="div" name="fade" class="flex flex-col gap-0.5 m-1 overflow-hidden flex flex-col">
+            <div v-else-if="mode === 'project' && displayedProjectVariables.length === 0" class="font-title text-xs italic text-grey-dark p-2">
+                This project's dialogues don't reference any variables.
+            </div>
+
+            <!-- 'project' mode — read-only reference list of every variable the project uses.
+                 Names the current user has a value for show solid; ones with no value yet are
+                 slightly dimmed. -->
+            <div v-if="mode === 'project'" class="flex flex-col gap-0.5 m-1">
+                <div v-for="v in displayedProjectVariables" :key="v.name"
+                    class="group flex items-center bg-grey-lighter px-1 py-0.5 gap-2"
+                    :class="{ 'opacity-60': !storedNames.has(v.name) }"
+                    :title="storedNames.has(v.name) ? 'You have a value for this' : 'No value set for you yet'">
+                    <div class="font-title font-semibold text-xs text-orange-darker min-w-0 truncate grow">${{ v.name }}</div>
+                    <button type="button" title="Copy name"
+                        class="shrink-0 w-5 h-5 flex items-center justify-center text-grey-dark hover:text-orange-dark cursor-pointer opacity-0 group-hover:opacity-100"
+                        @click="copyName(v.name)">
+                        <FontAwesomeIcon icon="fa-regular fa-copy" />
+                    </button>
+                </div>
+            </div>
+
+            <!-- 'values' mode — this user's stored variable values, editable -->
+            <TransitionGroup v-else tag="div" name="fade" class="flex flex-col gap-0.5 m-1 overflow-hidden flex flex-col">
                 <div v-for="variable in displayedVariables" :key="variable.name" class="flex items-center bg-grey-lighter px-1 py-0.5 gap-1"
                     :class="{ 'opacity-0 transition-opacity duration-500': deletingVariables.has(variable.name) }">
                     <div class="font-title font-semibold text-xs text-orange-darker shrink-0">${{ variable.name }}</div>
