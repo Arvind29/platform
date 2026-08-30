@@ -9,6 +9,10 @@ and this project adheres to a single monorepo-wide version declared in `global.j
 
 ### Changed
 
+- The web client's balloon test view steps the speech-bubble font size down for long statements
+  (to `text-base` past ~400 characters, `text-sm` past ~900) so more of a long node fits before
+  the reader has to scroll the page. Within one dialogue run the size only ever shrinks — a
+  shorter node after a long one keeps the reduced size instead of bouncing back up.
 - **Breaking:** `POST /v1/project/create-project` now expects the source-language fields as
   `sourceLanguageCode` / `sourceLanguageName` instead of `defaultLanguageCode` /
   `defaultLanguageName`. The old names are no longer accepted (a request using them fails with

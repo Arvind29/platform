@@ -1,5 +1,5 @@
 <script setup>
-import { computed, useTemplateRef } from 'vue';
+import { computed, ref, watch, useTemplateRef } from 'vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { useResizablePanel } from '@/composables/resizablepanel.js';
 import { statementToHtml } from '@/composables/sanitize-html.js';
@@ -38,6 +38,30 @@ const currentStep = computed(() => {
     return props.dialogueSteps.length == 0 ? null :
         props.dialogueSteps[props.dialogueSteps.length - 1];
 });
+
+// The speech bubble has no scroll of its own — a very long statement just grows the bubble past
+// the visible area. Step the font size down a notch or two for long statements so more of the
+// text fits before the reader has to scroll the page.
+const SIZE_TIERS = ['text-lg', 'text-base', 'text-sm'];
+
+const statementSizeTier = computed(() => {
+    const length = currentStep.value?.statement.fullStatement().length ?? 0;
+    if (length > 900) return 2;
+    if (length > 400) return 1;
+    return 0;
+});
+
+// Only ever shrink within one dialogue run: once a long node has stepped the text down, keep it
+// there for shorter nodes later in the same run rather than bouncing the size up and down node
+// to node. Reset when the steps array is swapped out — a restart, a new dialogue, or another
+// tab's run (this instance is shared across tabs).
+const minSizeTier = ref(0);
+watch(() => props.dialogueSteps, () => { minSizeTier.value = 0; });
+watch(statementSizeTier, (tier) => {
+    if (tier > minSizeTier.value) minSizeTier.value = tier;
+}, { immediate: true });
+
+const statementSizeClass = computed(() => SIZE_TIERS[Math.max(statementSizeTier.value, minSizeTier.value)]);
 </script>
 
 <template>
@@ -63,7 +87,7 @@ const currentStep = computed(() => {
                     sm: 'ml-10 mr-20',
                 })"
             >
-                <div class="bg-speech-bubble text-white text-lg rounded-2xl p-5 space-y-3" v-html="statementToHtml(currentStep.statement.fullStatement())"></div>
+                <div class="bg-speech-bubble text-white rounded-2xl p-5 space-y-3" :class="statementSizeClass" v-html="statementToHtml(currentStep.statement.fullStatement())"></div>
                 <div class="border-20 border-transparent border-t-speech-bubble self-end mr-[10%]"></div>
                 <div v-if="dialogueEnded" class="absolute top-full font-title text-sm font-bold italic text-center pt-2 w-full flex items-center justify-center gap-2">
                     {{ dialogueCancelled ? 'This dialogue has been cancelled.' : 'The dialogue has finished.' }}
