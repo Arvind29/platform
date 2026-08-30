@@ -3,7 +3,7 @@ export default { inheritAttrs: false };
 </script>
 
 <script setup>
-import { onMounted, ref, useAttrs } from 'vue';
+import { computed, onMounted, ref, useAttrs } from 'vue';
 const attrs = useAttrs();
 import { useClient } from '@/composables/client.js';
 import { logEvent } from '@/composables/debug-log.js';
@@ -57,6 +57,22 @@ const emit = defineEmits([
 const client = useClient();
 
 const variables = ref([]);
+
+const searchQuery = ref('');
+const sortMode = ref('name-asc');
+const isSearching = computed(() => searchQuery.value.trim().length > 0);
+
+// Variables the list actually renders: filtered by name (case-insensitive) and ordered by the
+// chosen mode. The rows still hold the original variable objects, so editing/deleting is
+// unaffected.
+const displayedVariables = computed(() => {
+    const needle = searchQuery.value.trim().toLowerCase();
+    const filtered = needle
+        ? variables.value.filter((v) => v.name.toLowerCase().includes(needle))
+        : variables.value;
+    const dir = sortMode.value === 'name-desc' ? -1 : 1;
+    return [...filtered].sort((a, b) => dir * a.name.localeCompare(b.name));
+});
 
 // Guards against out-of-order responses: loadVariables() can fire in quick succession (e.g. once
 // per dialogue step while testing) with no guarantee the requests resolve in the order they were
@@ -141,9 +157,44 @@ onMounted(() => {
                 <IconButton icon="fa-solid fa-angles-right" title="Collapse Variable Browser" @click="emit('collapse')" />
             </template>
         </MainPagePanelHeader>
+
+        <!-- Filter + sort strip -->
+        <div class="flex items-center gap-1.5 px-1 sm:mr-1">
+            <div class="relative flex-1 min-w-0">
+                <FontAwesomeIcon icon="fa-solid fa-magnifying-glass" class="absolute left-2 top-1/2 -translate-y-1/2 text-grey-dark text-[10px] pointer-events-none" />
+                <input
+                    v-model="searchQuery"
+                    type="text"
+                    placeholder="Filter variables…"
+                    class="w-full h-7.5 pl-6 pr-6 text-xs font-title border border-grey-light rounded-lg bg-white focus:outline-none focus:border-orange-dark"
+                    @keyup.esc="searchQuery = ''"
+                />
+                <button
+                    v-if="searchQuery"
+                    type="button"
+                    title="Clear filter"
+                    class="absolute right-1.5 top-1/2 -translate-y-1/2 text-grey-dark hover:text-orange-dark cursor-pointer"
+                    @click="searchQuery = ''"
+                >
+                    <FontAwesomeIcon icon="fa-solid fa-xmark" class="text-[10px]" />
+                </button>
+            </div>
+            <select
+                v-model="sortMode"
+                title="Sort variables"
+                class="h-7.5 px-2 shrink-0 border border-grey-light rounded-lg text-xs font-title focus:outline-none focus:border-orange-dark bg-white cursor-pointer"
+            >
+                <option value="name-asc">Name (A–Z)</option>
+                <option value="name-desc">Name (Z–A)</option>
+            </select>
+        </div>
+
         <MainPagePanelContainer class="sm:mr-1">
+            <div v-if="isSearching && displayedVariables.length === 0" class="font-title text-xs italic text-grey-dark p-2">
+                No variables match “{{ searchQuery.trim() }}”.
+            </div>
             <TransitionGroup tag="div" name="fade" class="flex flex-col gap-0.5 m-1 overflow-hidden flex flex-col">
-                <div v-for="variable in variables" :key="variable.name" class="flex items-center bg-grey-lighter px-1 py-0.5 gap-1"
+                <div v-for="variable in displayedVariables" :key="variable.name" class="flex items-center bg-grey-lighter px-1 py-0.5 gap-1"
                     :class="{ 'opacity-0 transition-opacity duration-500': deletingVariables.has(variable.name) }">
                     <div class="font-title font-semibold text-xs text-orange-darker shrink-0">${{ variable.name }}</div>
                     <input type="text" class="font-title text-xs px-1 py-0.5 min-w-0 grow border border-grey-light rounded bg-white focus:outline-none focus:border-orange-dark" v-model="variable.value" @input="onVariableInput(variable)" @keyup.enter="submitVariable(variable)"></input>

@@ -30,6 +30,9 @@ and this project adheres to a single monorepo-wide version declared in `global.j
   — the API's own order) and **Name (A–Z / Z–A)** (a flat sort with folders and dialogues
   intermixed) in both modes, plus **Last updated** and **Size** (by node count, folders kept
   grouped first) in Authoring Mode.
+- The Variable Browser has the same filter + sort strip: a name filter and **Name (A–Z / Z–A)**
+  ordering (variables now default to alphabetical order rather than the order the service
+  returns them in).
 - The authoring `list-dialogues` response now includes each draft dialogue's `updatedAt` and
   `nodeCount`, and is ordered folders-first, so a client can offer sort-by-last-updated and
   sort-by-size in Authoring Mode. Node counts come from a single grouped query (no node content
