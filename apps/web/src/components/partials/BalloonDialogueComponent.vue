@@ -2,7 +2,7 @@
 import { computed, useTemplateRef } from 'vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { useResizablePanel } from '@/composables/resizablepanel.js';
-import { sanitizeHtml } from '@/composables/sanitize-html.js';
+import { statementToHtml } from '@/composables/sanitize-html.js';
 import { BasicReply } from '@/dlb-lib/model/BasicReply';
 import { AutoForwardReply } from '@/dlb-lib/model/AutoForwardReply';
 import CollapsibleErrorList from '../widgets/CollapsibleErrorList.vue';
@@ -63,7 +63,7 @@ const currentStep = computed(() => {
                     sm: 'ml-10 mr-20',
                 })"
             >
-                <div class="bg-speech-bubble text-white text-lg rounded-2xl p-5" v-html="sanitizeHtml(currentStep.statement.fullStatement())"></div>
+                <div class="bg-speech-bubble text-white text-lg rounded-2xl p-5 space-y-3" v-html="statementToHtml(currentStep.statement.fullStatement())"></div>
                 <div class="border-20 border-transparent border-t-speech-bubble self-end mr-[10%]"></div>
                 <div v-if="dialogueEnded" class="absolute top-full font-title text-sm font-bold italic text-center pt-2 w-full flex items-center justify-center gap-2">
                     {{ dialogueCancelled ? 'This dialogue has been cancelled.' : 'The dialogue has finished.' }}

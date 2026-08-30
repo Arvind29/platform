@@ -3,7 +3,7 @@ import { nextTick, ref, useTemplateRef } from 'vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { BasicReply } from '@/dlb-lib/model/BasicReply';
 import { AutoForwardReply } from '@/dlb-lib/model/AutoForwardReply';
-import { sanitizeHtml } from '@/composables/sanitize-html.js';
+import { statementToHtml } from '@/composables/sanitize-html.js';
 import CollapsibleErrorList from '../widgets/CollapsibleErrorList.vue';
 
 const props = defineProps([
@@ -132,7 +132,7 @@ function getBasicReplyTextClasses(step, stepIndex, reply) {
     <div v-for="(step, stepIndex) in dialogueSteps" class="dialogue-step font-title p-2 mb-8">
         <div class="flex gap-5 mb-5">
             <div class="basis-0 grow-1 font-semibold text-right">{{ step.speaker }}:</div>
-            <div class="basis-0 grow-4 font-light" v-html="sanitizeHtml(step.statement.fullStatement())"></div>
+            <div class="basis-0 grow-4 font-light space-y-3" v-html="statementToHtml(step.statement.fullStatement())"></div>
         </div>
         <div>
             <template v-for="(reply, replyIndex) in step.replies">

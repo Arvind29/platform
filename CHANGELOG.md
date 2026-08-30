@@ -36,6 +36,11 @@ and this project adheres to a single monorepo-wide version declared in `global.j
   and spacer height were shared by every tab, so switching tabs left the view at whatever offset
   the previous tab had. Each tab's offset is now saved on the way out and restored on the way
   back in (a tab shown for the first time still pins to the latest statement).
+- Dialogue statement text with paragraph breaks now renders as separate paragraphs in the web
+  client's balloon and text test views instead of collapsing into one block. Blank lines in a
+  node's body become `<p>` breaks and single line breaks become `<br>`; the newlines were
+  already preserved by the parser and web service, only the client's HTML rendering dropped
+  them.
 - The web client's status bar no longer reports a misleading "Connected to `<host>` on port
   `<port>`" line. Since the client talks only to its own origin and the Web Service sits behind
   the BFF proxy, that host and port were the client's own, not the Web Service's. It now reads
