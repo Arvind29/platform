@@ -30,7 +30,10 @@ package com.dialoguebranch.web.service.repository;
 
 import com.dialoguebranch.web.service.storage.model.DBDraftDialogue;
 import com.dialoguebranch.web.service.storage.model.DBDraftNode;
+import com.dialoguebranch.web.service.storage.model.DBProject;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -60,5 +63,17 @@ public interface DBDraftNodeRepository extends JpaRepository<DBDraftNode, UUID> 
 	 * node with the given title exists in the draft dialogue.
 	 */
 	Optional<DBDraftNode> findByDraftDialogueAndTitle(DBDraftDialogue draftDialogue, String title);
+
+	/**
+	 * Counts the nodes of every draft dialogue in the given project in a single query, without
+	 * loading any node content. Draft dialogues that have no nodes are absent from the result.
+	 *
+	 * @param project the project whose draft dialogues' nodes should be counted.
+	 * @return one {@link DraftDialogueNodeCount} per draft dialogue that has at least one node.
+	 */
+	@Query("SELECT n.draftDialogue.id AS dialogueId, COUNT(n) AS nodeCount " +
+			"FROM DBDraftNode n WHERE n.draftDialogue.project = :project " +
+			"GROUP BY n.draftDialogue.id")
+	List<DraftDialogueNodeCount> countNodesByProject(@Param("project") DBProject project);
 
 }

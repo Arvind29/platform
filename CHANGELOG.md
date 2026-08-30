@@ -24,6 +24,10 @@ and this project adheres to a single monorepo-wide version declared in `global.j
 
 ### Added
 
+- The authoring `list-dialogues` response now includes each draft dialogue's `updatedAt` and
+  `nodeCount`, and is ordered folders-first, so a client can offer sort-by-last-updated and
+  sort-by-size in Authoring Mode. Node counts come from a single grouped query (no node content
+  is loaded).
 - The debug bar at the bottom of Studio's dialogue test views now also shows the node
   the current step is in, next to the ephemeral session / logged-dialogue id.
 - Studio's admin-only "Technical Information" dialog now also shows the Web Service's

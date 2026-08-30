@@ -37,12 +37,15 @@ import com.dialoguebranch.i18n.Translator;
 import com.dialoguebranch.model.common.DialogueBranchConstants;
 import com.dialoguebranch.model.execute.Node;
 import com.dialoguebranch.model.execute.nodepointer.ExternalNodePointer;
+import com.dialoguebranch.web.service.controller.schema.DialogueNameComparator;
+import com.dialoguebranch.web.service.controller.schema.authoring.DraftDialogueSummary;
 import com.dialoguebranch.web.service.controller.schema.authoring.TranslatableTermSummary;
 import com.dialoguebranch.web.service.exception.BadRequestException;
 import com.dialoguebranch.web.service.exception.ConflictException;
 import com.dialoguebranch.web.service.exception.ProjectParseHttpError;
 import com.dialoguebranch.web.service.repository.DBDraftDialogueRepository;
 import com.dialoguebranch.web.service.repository.DBDraftNodeRepository;
+import com.dialoguebranch.web.service.repository.DraftDialogueNodeCount;
 import com.dialoguebranch.web.service.repository.DBDraftTranslationRepository;
 import com.dialoguebranch.web.service.storage.model.DBDraftDialogue;
 import com.dialoguebranch.web.service.storage.model.DBDraftNode;
@@ -61,6 +64,7 @@ import java.io.StringReader;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -69,6 +73,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Service for managing draft dialogues, their nodes, and their translations. All edits made
@@ -116,6 +121,27 @@ public class DraftDialogueService {
 	 */
 	public List<DBDraftDialogue> listDialogues(DBProject project) {
 		return dialogueRepository.findByProject(project);
+	}
+
+	/**
+	 * Returns a {@link DraftDialogueSummary} for every draft dialogue in the given project —
+	 * name, last-updated time, node count and status flags — ordered "folders first" (see
+	 * {@link DialogueNameComparator}). Node counts come from a single grouped query, so no node
+	 * content is loaded.
+	 *
+	 * @param project the owning project.
+	 * @return the project's draft dialogues, summarized and ordered.
+	 */
+	public List<DraftDialogueSummary> listDialogueSummaries(DBProject project) {
+		Map<UUID, Long> nodeCounts = nodeRepository.countNodesByProject(project).stream()
+				.collect(Collectors.toMap(DraftDialogueNodeCount::getDialogueId,
+						DraftDialogueNodeCount::getNodeCount));
+		return dialogueRepository.findByProject(project).stream()
+				.map(dialogue -> new DraftDialogueSummary(dialogue,
+						nodeCounts.getOrDefault(dialogue.getId(), 0L).intValue()))
+				.sorted(Comparator.comparing(DraftDialogueSummary::getName,
+						DialogueNameComparator.FOLDERS_FIRST))
+				.toList();
 	}
 
 	/**

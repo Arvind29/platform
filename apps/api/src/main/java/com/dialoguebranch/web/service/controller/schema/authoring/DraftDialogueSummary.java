@@ -32,26 +32,31 @@ import com.dialoguebranch.web.service.storage.model.DBDraftDialogue;
 
 /**
  * Summary of a draft dialogue as returned by the {@code /list-dialogues} end-point, exposing its
- * persisted status flags rather than the full entity.
+ * name, last-updated time, node count and persisted status flags rather than the full entity.
  *
  * @author Harm op den Akker
  */
 public class DraftDialogueSummary {
 
 	private final String name;
+	private final String updatedAt;
+	private final int nodeCount;
 	private final boolean isNew;
 	private final boolean isChanged;
 	private final boolean isDeleted;
 	private final String previousPublishedName;
 
 	/**
-	 * Creates a {@link DraftDialogueSummary} from the given {@link DBDraftDialogue} entity,
-	 * copying its name and status flags.
+	 * Creates a {@link DraftDialogueSummary} from the given {@link DBDraftDialogue} entity and a
+	 * separately-computed node count (the entity's node collection is not touched).
 	 *
-	 * @param dialogue the draft dialogue entity to summarize.
+	 * @param dialogue  the draft dialogue entity to summarize.
+	 * @param nodeCount the number of nodes the draft dialogue contains.
 	 */
-	public DraftDialogueSummary(DBDraftDialogue dialogue) {
+	public DraftDialogueSummary(DBDraftDialogue dialogue, int nodeCount) {
 		this.name = dialogue.getName();
+		this.updatedAt = dialogue.getUpdatedAt() != null ? dialogue.getUpdatedAt().toString() : null;
+		this.nodeCount = nodeCount;
 		this.isNew = dialogue.getIsNew();
 		this.isChanged = dialogue.getIsChanged();
 		this.isDeleted = dialogue.getIsDeleted();
@@ -63,6 +68,21 @@ public class DraftDialogueSummary {
 	 */
 	public String getName() {
 		return name;
+	}
+
+	/**
+	 * @return the ISO-8601 instant at which this draft dialogue was last modified, or {@code
+	 * null} if it has no recorded update time.
+	 */
+	public String getUpdatedAt() {
+		return updatedAt;
+	}
+
+	/**
+	 * @return the number of nodes in this draft dialogue.
+	 */
+	public int getNodeCount() {
+		return nodeCount;
 	}
 
 	/**

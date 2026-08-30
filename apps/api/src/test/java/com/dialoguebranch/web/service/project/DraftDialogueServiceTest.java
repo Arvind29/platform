@@ -1,5 +1,6 @@
 package com.dialoguebranch.web.service.project;
 
+import com.dialoguebranch.web.service.controller.schema.authoring.DraftDialogueSummary;
 import com.dialoguebranch.web.service.exception.BadRequestException;
 import com.dialoguebranch.web.service.exception.ConflictException;
 import com.dialoguebranch.web.service.storage.model.DBDraftDialogue;
@@ -14,8 +15,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -444,6 +448,37 @@ class DraftDialogueServiceTest {
                 .findTranslation(dialogue, language)
                 .orElseThrow();
         assertFalse(translation.getContent().isBlank());
+    }
+
+    @Test
+    void listDialogueSummariesReportsNodeCountAndUpdatedAt() {
+        DBProject project = projectService.createProject("summary-counts", "Summary Counts", "", "en", "English");
+        DBDraftDialogue twoNodes = draftDialogueService.createDialogue(project, "two-nodes");
+        draftDialogueService.createNode(twoNodes, "A", "title: A\nposition: 0,0", "[[x|B]]");
+        draftDialogueService.createNode(twoNodes, "B", "title: B\nposition: 100,0", "done.");
+        draftDialogueService.createDialogue(project, "no-nodes");
+
+        Map<String, DraftDialogueSummary> byName = draftDialogueService.listDialogueSummaries(project)
+                .stream().collect(Collectors.toMap(DraftDialogueSummary::getName, summary -> summary));
+
+        assertEquals(2, byName.get("two-nodes").getNodeCount());
+        assertEquals(0, byName.get("no-nodes").getNodeCount(),
+                "a dialogue with no nodes should still report a count of 0");
+        assertNotNull(byName.get("two-nodes").getUpdatedAt());
+        assertTrue(byName.get("two-nodes").getIsNew());
+    }
+
+    @Test
+    void listDialogueSummariesOrdersFoldersFirst() {
+        DBProject project = projectService.createProject("summary-order", "Summary Order", "", "en", "English");
+        for (String name : List.of("zebra", "intro/welcome", "apple", "intro/setup")) {
+            draftDialogueService.createDialogue(project, name);
+        }
+
+        List<String> order = draftDialogueService.listDialogueSummaries(project)
+                .stream().map(DraftDialogueSummary::getName).toList();
+
+        assertEquals(List.of("intro/setup", "intro/welcome", "apple", "zebra"), order);
     }
 
 }

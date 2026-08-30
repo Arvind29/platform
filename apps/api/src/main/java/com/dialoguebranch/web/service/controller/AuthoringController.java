@@ -189,9 +189,7 @@ public class AuthoringController {
 					DBProject project = projectService.findBySlug(projectSlug)
 							.orElseThrow(() -> new NotFoundException(
 									"Project not found: " + projectSlug));
-					return draftDialogueService.listDialogues(project).stream()
-							.map(DraftDialogueSummary::new)
-							.toList();
+					return draftDialogueService.listDialogueSummaries(project);
 				},
 				version, ControllerFunctions.extractAccessToken(request), response, "", application,
 				AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
