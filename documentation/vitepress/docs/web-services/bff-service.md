@@ -1,6 +1,6 @@
 # Web Services: BFF
 
-`apps/bff` is a small Spring Boot [Backend-for-Frontend](https://samnewman.io/patterns/architecture/bff/) service that sits between [Dialogue Branch Studio](/web-services/studio) (`apps/web`) and the Web Service. It exists so that the browser never has to hold an OAuth2 access or refresh token: the token lives server-side, in the BFF's HTTP session, and the browser only ever holds a `JSESSIONID` session cookie. See [Studio Authentication (via the BFF)](/web-services/authentication#studio-authentication-via-the-bff) for the full request flow, with diagrams.
+`apps/bff` is a small Spring Boot [Backend-for-Frontend](https://samnewman.io/patterns/architecture/bff/) service that sits between [Dialogue Branch Studio](/web-services/studio) (`apps/studio`) and the Web Service. It exists so that the browser never has to hold an OAuth2 access or refresh token: the token lives server-side, in the BFF's HTTP session, and the browser only ever holds a `JSESSIONID` session cookie. See [Studio Authentication (via the BFF)](/web-services/authentication#studio-authentication-via-the-bff) for the full request flow, with diagrams.
 
 Sessions are persisted to a dedicated MariaDB database (`dlb_bff_sessions` by default) rather than kept in the JVM's own memory, so a redeploy of the BFF doesn't silently drop every signed-in user. This is a separate database from the Web Service's own — the BFF otherwise owns no persistent data of its own.
 
@@ -37,7 +37,7 @@ The BFF is configured through `dlb.bff.*` properties (see `apps/bff/src/main/res
 
 ## Local Development
 
-Running `docker compose --profile api up` (see the repository's top-level `infrastructure/docker/compose.yml`) builds and starts the BFF alongside the Web Service, since developing Studio locally needs both. A `--profile client` setup also exists, containerizing Studio and the BFF themselves behind a proxy — see [Studio's local development setups](/web-services/studio#local-development-setups) for all three.
+Running `docker compose --profile api up` (see the repository's top-level `infrastructure/docker/compose.yml`) builds and starts the BFF alongside the Web Service, since developing Studio locally needs both. A `--profile studio` setup also exists, containerizing Studio and the BFF themselves behind a proxy — see [Studio's local development setups](/web-services/studio#local-development-setups) for all three.
 
 ::: info Note
 If you found errors or have questions about this page, please consider reporting an issue at https://github.com/dialoguebranch/platform or sending an email to info@dialoguebranch.com.

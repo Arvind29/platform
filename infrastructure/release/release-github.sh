@@ -86,8 +86,8 @@ with open(path, 'w') as f:
     f.write('\n')
 "
 
-command -v npm >/dev/null || { echo "error: 'npm' is required to sync apps/web/package.json" >&2; exit 1; }
-(cd apps/web && npm run --silent sync-version)
+command -v npm >/dev/null || { echo "error: 'npm' is required to sync apps/studio/package.json" >&2; exit 1; }
+(cd apps/studio && npm run --silent sync-version)
 
 RELEASE_DATE="$(date +%F)"
 
@@ -115,12 +115,12 @@ awk -v heading="## [${VERSION}]" '
 	found { print }
 ' "$CHANGELOG" > "$NOTES_FILE"
 
-WEB_PACKAGE_JSON="apps/web/package.json"
-WEB_PACKAGE_LOCK="apps/web/package-lock.json"
+STUDIO_PACKAGE_JSON="apps/studio/package.json"
+STUDIO_PACKAGE_LOCK="apps/studio/package-lock.json"
 
 echo "About to release ${TAG} (${BUMP_TYPE} bump from ${CURRENT_VERSION}):"
 echo "--------------------------------"
-git --no-pager diff -- "$GLOBAL_JSON" "$CHANGELOG" "$WEB_PACKAGE_JSON" "$WEB_PACKAGE_LOCK"
+git --no-pager diff -- "$GLOBAL_JSON" "$CHANGELOG" "$STUDIO_PACKAGE_JSON" "$STUDIO_PACKAGE_LOCK"
 echo "--------------------------------"
 echo "Release notes (from CHANGELOG.md):"
 echo "--------------------------------"
@@ -132,12 +132,12 @@ echo "--------------------------------"
 # empty, so the check below reverts cleanly instead.
 read -r -p "Commit, tag, push, and publish this release? [y/N] " CONFIRM || CONFIRM=""
 if [[ ! "$CONFIRM" =~ ^[Yy]$ ]]; then
-	echo "Aborted; reverting $GLOBAL_JSON, $CHANGELOG, $WEB_PACKAGE_JSON, and $WEB_PACKAGE_LOCK."
-	git checkout -- "$GLOBAL_JSON" "$CHANGELOG" "$WEB_PACKAGE_JSON" "$WEB_PACKAGE_LOCK"
+	echo "Aborted; reverting $GLOBAL_JSON, $CHANGELOG, $STUDIO_PACKAGE_JSON, and $STUDIO_PACKAGE_LOCK."
+	git checkout -- "$GLOBAL_JSON" "$CHANGELOG" "$STUDIO_PACKAGE_JSON" "$STUDIO_PACKAGE_LOCK"
 	exit 1
 fi
 
-git add "$GLOBAL_JSON" "$CHANGELOG" "$WEB_PACKAGE_JSON" "$WEB_PACKAGE_LOCK"
+git add "$GLOBAL_JSON" "$CHANGELOG" "$STUDIO_PACKAGE_JSON" "$STUDIO_PACKAGE_LOCK"
 git commit -m "Release ${TAG}"
 git tag -a "$TAG" -m "$TAG"
 

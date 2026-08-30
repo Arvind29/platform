@@ -6,24 +6,24 @@
 #   docker compose up -d                              # supporting services only
 #   docker compose --profile api up -d                # also build and run the API and the BFF
 #   docker compose --profile variable-service up -d   # also build and run the mock variable service
-#   docker compose --profile client up -d             # everything containerized: API, BFF, web
-#                                                      # client, and a proxy in front, mirroring a
-#                                                      # real deployment (see issue #81)
+#   docker compose --profile studio up -d             # everything containerized: API, BFF,
+#                                                      # Studio, and a proxy in front, mirroring
+#                                                      # a real deployment (see issue #81)
 #
 # Three local development setups, matching what a given change actually needs:
 #
 #   1. Web service only: this file with no profile, run the API separately (e.g. `./gradlew
 #      bootRun` in apps/api).
 #   2. Dialogue Branch Studio development: `--profile api` (API + BFF in Docker), run Studio
-#      separately (`npm run dev` in apps/web) — its vite.config.js dev-server proxy sends
+#      separately (`npm run dev` in apps/studio) — its vite.config.js dev-server proxy sends
 #      /api, /oauth2, /login, /logout, /whoami, /actuator to the Dockerized BFF on
 #      http://localhost:8082, so the browser only ever talks to Vite's own origin.
-#   3. Everything in Docker (`--profile client`): Studio and BFF run as containers too,
+#   3. Everything in Docker (`--profile studio`): Studio and BFF run as containers too,
 #      fronted by the `nginx` service below on http://localhost:8080 — since Vite's dev-server
 #      proxy isn't available here, this proxy is what makes the (containerized) Studio and
 #      BFF same-origin instead, the same way a production reverse proxy would.
 #
-# Studio (apps/web) authenticates through the BFF, not Keycloak directly — see
+# Studio (apps/studio) authenticates through the BFF, not Keycloak directly — see
 # apps/bff's Javadoc.
 
 name: dlb-dev
@@ -134,7 +134,7 @@ services:
       KEYCLOAK_INTERNAL_URL: http://keycloak:8080
       KEYCLOAK_BFF_REDIRECT_URI: http://localhost:8082/login/oauth2/code/keycloak
       KEYCLOAK_BFF_POST_LOGOUT_REDIRECT_URI: http://localhost:5173/
-      # Same values as the bff/bff-client services' own DLB_BFF_SESSION_TIMEOUT/
+      # Same values as the bff/bff-studio services' own DLB_BFF_SESSION_TIMEOUT/
       # DLB_BFF_SESSION_MAX_AGE below: the single source of truth sync-realm.py mirrors into
       # Keycloak's session settings.
       DLB_BFF_SESSION_TIMEOUT: ${DLB_BFF_SESSION_TIMEOUT:-7d}
@@ -154,7 +154,7 @@ services:
       dockerfile: apps/api/Dockerfile
     profiles:
       - api
-      - client
+      - studio
     container_name: dlb-dev-api
     environment:
       DLB_AUTH_KEYCLOAK_BASE_URL: http://keycloak:8080/
@@ -175,7 +175,7 @@ services:
   # ---------------------------------------------------------------------------
   # Dialogue Branch BFF (optional, start with --profile api)
   #
-  # Backend-for-Frontend for Dialogue Branch Studio (apps/web) — see apps/bff's Javadoc.
+  # Backend-for-Frontend for Dialogue Branch Studio (apps/studio) — see apps/bff's Javadoc.
   # ---------------------------------------------------------------------------
 
   bff:
@@ -211,7 +211,7 @@ services:
         condition: service_healthy
 
   # ---------------------------------------------------------------------------
-  # "client" profile — everything containerized (issue #81)
+  # "studio" profile — everything containerized (issue #81)
   #
   # A second BFF instance and Dialogue Branch Studio itself, both fronted by nginx below on
   # http://localhost:8080, the single origin a browser talks to for this profile. Not exposed on
@@ -222,18 +222,18 @@ services:
   # running container) rather than reusing it: that one's DLB_BFF_POST_LOGIN_REDIRECT_URL is
   # hardcoded to Vite's dev-server origin, which only works because Vite's proxy rewrites the
   # Host header it forwards (see vite.config.js's changeOrigin: true), hiding the browser's real
-  # origin from the BFF entirely. nginx's client.conf does the opposite on purpose — it preserves
+  # origin from the BFF entirely. nginx's studio.conf does the opposite on purpose — it preserves
   # the real Host header — so this instance can (and must) leave DLB_BFF_POST_LOGIN_REDIRECT_URL
   # unset: its default, a relative "/", already resolves correctly against whatever origin the
   # browser actually used (see application.yml's own comment on that default), exactly like a real
   # deployment.
-  bff-client:
+  bff-studio:
     build:
       context: ../..
       dockerfile: apps/bff/Dockerfile
     profiles:
-      - client
-    container_name: dlb-dev-bff-client
+      - studio
+    container_name: dlb-dev-bff-studio
     environment:
       DLB_BFF_KEYCLOAK_BASE_URL: http://keycloak:8080/
       DLB_BFF_KEYCLOAK_BROWSER_BASE_URL: http://localhost:8081/
@@ -251,33 +251,33 @@ services:
       mariadb:
         condition: service_healthy
 
-  # Dialogue Branch Studio's own static build (apps/web/Dockerfile) — its default build args already talk
+  # Dialogue Branch Studio's own static build (apps/studio/Dockerfile) — its default build args already talk
   # to the BFF via same-origin relative paths (/api/v1 etc.), which is exactly what nginx below
   # provides, so nothing needs overriding here.
-  web:
+  studio:
     build:
       context: ../..
-      dockerfile: apps/web/Dockerfile
+      dockerfile: apps/studio/Dockerfile
     profiles:
-      - client
-    container_name: dlb-dev-web
+      - studio
+    container_name: dlb-dev-studio
 
-  # Single entry point for this profile — path-splits between `web` (the static SPA) and
-  # `bff-client` (everything the SPA can't serve itself), so they appear to the browser as one
-  # origin. See client.conf for the exact path list and why Host must be preserved, not rewritten.
+  # Single entry point for this profile — path-splits between `studio` (the static SPA) and
+  # `bff-studio` (everything the SPA can't serve itself), so they appear to the browser as one
+  # origin. See studio.conf for the exact path list and why Host must be preserved, not rewritten.
   nginx:
     image: nginx:1.27-alpine
     container_name: dlb-dev-nginx
     profiles:
-      - client
+      - studio
     volumes:
-      - ./nginx/client.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/studio.conf:/etc/nginx/conf.d/default.conf:ro
     ports:
       - "8080:80"
     depends_on:
-      web:
+      studio:
         condition: service_started
-      bff-client:
+      bff-studio:
         condition: service_started
 
   # ---------------------------------------------------------------------------

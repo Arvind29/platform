@@ -9,7 +9,7 @@ The Dialogue Branch Web Service is a pure [OAuth2](https://oauth.net/2/) **resou
 There are two distinct ways a client ends up presenting a valid token to the Web Service, depending on what kind of client it is:
 
 * A **direct API client** (a custom integration, a script, or the bundled Swagger UI) performs the OAuth2 flow itself and attaches the resulting access token to every request — see [Direct API Clients](#direct-api-clients) below.
-* **Dialogue Branch Studio** (`apps/web`), the bundled reference client, never performs the OAuth2 flow itself and never holds a token at all. It delegates authentication entirely to a separate Backend-for-Frontend service (`apps/bff`) that sits in front of the Web Service — see [Studio Authentication (via the BFF)](#studio-authentication-via-the-bff) below.
+* **Dialogue Branch Studio** (`apps/studio`), the bundled reference client, never performs the OAuth2 flow itself and never holds a token at all. It delegates authentication entirely to a separate Backend-for-Frontend service (`apps/bff`) that sits in front of the Web Service — see [Studio Authentication (via the BFF)](#studio-authentication-via-the-bff) below.
 
 ## Direct API Clients
 
@@ -42,7 +42,7 @@ sequenceDiagram
 
 ## Studio Authentication (via the BFF)
 
-`apps/bff` is a small Spring Boot [Backend-for-Frontend](https://samnewman.io/patterns/architecture/bff/) service that sits between Dialogue Branch Studio (`apps/web`) and the Web Service. It exists so that the browser never has to hold an OAuth2 access or refresh token: the token lives server-side, in the BFF's HTTP session, and the browser only ever holds a `JSESSIONID` session cookie.
+`apps/bff` is a small Spring Boot [Backend-for-Frontend](https://samnewman.io/patterns/architecture/bff/) service that sits between Dialogue Branch Studio (`apps/studio`) and the Web Service. It exists so that the browser never has to hold an OAuth2 access or refresh token: the token lives server-side, in the BFF's HTTP session, and the browser only ever holds a `JSESSIONID` session cookie.
 
 The flow:
 
@@ -58,7 +58,7 @@ Because the BFF only relays Bearer tokens it already obtained, the Web Service i
 ```mermaid
 sequenceDiagram
     actor User
-    participant Browser as Studio (apps/web)
+    participant Browser as Studio (apps/studio)
     participant BFF as BFF (apps/bff)
     participant Keycloak
     participant API as Dialogue Branch Web Service
@@ -145,4 +145,4 @@ Every other Web Service end-point requires a valid Bearer token. The BFF mirrors
 
 When running the platform's local development stack (see the repository's top-level `infrastructure/docker/compose.yml`), Keycloak is available at `http://localhost:8081`. The bundled realm import does not seed any demo users — after starting the stack, log in to the Keycloak admin console (default credentials `admin`/`admin`) and create a test user, assigning it one or more of the `participant`/`editor`/`admin` client roles on the `dlb-web-service` client, before you can call any authenticated Web Service end-point.
 
-Running `docker compose --profile api up` also builds and starts the BFF (`http://localhost:8082`) alongside the Web Service, since developing Studio locally needs both. Studio's Vite dev server proxies `/api`, `/oauth2`, `/login`, `/logout`, `/whoami`, and `/actuator` to the BFF (see `apps/web/vite.config.js`), so during local development you can treat the dev server's own origin (`http://localhost:5173`) as if it served these paths directly.
+Running `docker compose --profile api up` also builds and starts the BFF (`http://localhost:8082`) alongside the Web Service, since developing Studio locally needs both. Studio's Vite dev server proxies `/api`, `/oauth2`, `/login`, `/logout`, `/whoami`, and `/actuator` to the BFF (see `apps/studio/vite.config.js`), so during local development you can treat the dev server's own origin (`http://localhost:5173`) as if it served these paths directly.

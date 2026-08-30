@@ -5,7 +5,7 @@ The Dialogue Branch Web Service is a [JAVA Spring Boot Application](https://spri
 ```mermaid
 flowchart LR
     Client["3rd party Dialogue Branch client"]
-    WebClient["Dialogue Branch Studio (apps/web)"]
+    WebClient["Dialogue Branch Studio (apps/studio)"]
     BFF["BFF (apps/bff)"]
     EVS["External Variable Service"]
 
@@ -30,7 +30,7 @@ flowchart LR
 The components shown in the Figure above are each described on their own page:
 
 * **[3rd Party Client Applications](/web-services/third-party-clients)** — Guidance for writing your own client application that connects to the Web Service directly, attaching its own OAuth2 Bearer token to every request, in order to render remotely executed Dialogue Branch dialogues.
-* **[Dialogue Branch Studio](/web-services/studio)** (`apps/web`) — The bundled Vue-based dialogue authoring and testing application. Unlike a direct API client, it never holds a token itself; it authenticates and calls the Web Service through the BFF.
+* **[Dialogue Branch Studio](/web-services/studio)** (`apps/studio`) — The bundled Vue-based dialogue authoring and testing application. Unlike a direct API client, it never holds a token itself; it authenticates and calls the Web Service through the BFF.
 * **[BFF](/web-services/bff-service)** (`apps/bff`) — The Backend-for-Frontend that performs the OAuth2 login against Keycloak on behalf of Studio and proxies its API calls to the Web Service, keeping the access token server-side.
 * **[Dialogue Branch Web Service](/web-services/api-service)** — the Java Spring Boot Application that can be deployed in a web server. It is a pure [OAuth2](https://oauth.net/2/) resource server (user authentication itself is handled entirely by Keycloak, see [Authentication](/web-services/authentication)) and offers a REST API.
   * **REST API** — a set of REST end-points for executing DLB dialogues, managing DLB Variables, authoring and publishing dialogue content, and retrieving service info and logs.

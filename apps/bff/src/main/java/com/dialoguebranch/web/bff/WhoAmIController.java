@@ -46,8 +46,8 @@ import java.util.Map;
  * Exposes {@code GET /whoami}, returning the current session's username and Dialogue Branch Web
  * Service roles as plain JSON.
  *
- * <p>Before this Backend-for-Frontend existed, the web client read this directly out of its own
- * decoded access token (see {@code src/main.js} in {@code apps/web}, before this change): the
+ * <p>Before this Backend-for-Frontend existed, Studio read this directly out of its own
+ * decoded access token (see {@code src/main.js} in {@code apps/studio}, before this change): the
  * whole point of the BFF is that the browser no longer holds that token at all, so this
  * information has to come from the server instead. The claim is read from the session's access
  * token (already parsed here without re-verifying its signature — it came from our own trusted

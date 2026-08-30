@@ -1,10 +1,10 @@
 # Standalone Dialogue Branch Studio Docker image.
 #
 # Build context must be the platform/ root of the monorepo:
-#   docker build -t dlb-web-client -f apps/web/Dockerfile .
+#   docker build -t dlb-studio -f apps/studio/Dockerfile .
 #
 # Run the resulting image:
-#   docker run -p 8090:80 dlb-web-client
+#   docker run -p 8090:80 dlb-studio
 #
 # This client talks only to the BFF (apps/bff), same-origin, never to the Web Service or Keycloak
 # directly — see src/auth.js. In production that same-origin illusion comes from the reverse
@@ -25,9 +25,9 @@ FROM node:22 AS builder
 WORKDIR /build
 
 COPY global.json global.json
-COPY apps/web/ apps/web/
+COPY apps/studio/ apps/studio/
 
-WORKDIR /build/apps/web
+WORKDIR /build/apps/studio
 
 ARG VITE_DLB_API_BASE_URL=/api/v1
 ARG VITE_DLB_LOG_LEVEL=1
@@ -43,4 +43,4 @@ RUN npm install && npm run build
 
 FROM httpd:2.4 AS final-stage
 
-COPY --from=builder /build/apps/web/dist /usr/local/apache2/htdocs
+COPY --from=builder /build/apps/studio/dist /usr/local/apache2/htdocs

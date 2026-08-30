@@ -8,8 +8,8 @@ The Dialogue Branch Platform is a monorepo for authoring, executing, and serving
 
 1. **`packages/core`** — Core Java library (`com.dialoguebranch`) for parsing and executing `.dlb` scripts. Published to Maven Central as `com.dialoguebranch:dlb-core-java`.
 2. **`apps/api`** — Spring Boot web service that wraps the core library with a REST API. Deployed as a WAR on Tomcat. API base path: `/dlb-web-service/v1`.
-3. **`apps/bff`** — Spring Boot Backend-for-Frontend: performs the OAuth2 login against Keycloak on behalf of `apps/web` and proxies its API calls to `apps/api`, so the browser never holds an access token (see [BFF service](#bff-service-apps-bff) below). Deployed as an executable JAR, not a WAR.
-4. **`apps/web`** — Vue 3 / Vite / Tailwind CSS front-end ("Dialogue Branch Studio") that consumes the REST API via the BFF.
+3. **`apps/bff`** — Spring Boot Backend-for-Frontend: performs the OAuth2 login against Keycloak on behalf of `apps/studio` and proxies its API calls to `apps/api`, so the browser never holds an access token (see [BFF service](#bff-service-apps-bff) below). Deployed as an executable JAR, not a WAR.
+4. **`apps/studio`** — Vue 3 / Vite / Tailwind CSS front-end ("Dialogue Branch Studio") that consumes the REST API via the BFF.
 
 The version for the entire monorepo is declared once in `global.json` at the root. Both Gradle builds and the web `package.json` read from this file.
 
@@ -65,10 +65,10 @@ Docker build (from repo root):
 docker build -t dlb-bff -f apps/bff/Dockerfile .
 ```
 
-### Studio (`apps/web/`)
+### Studio (`apps/studio/`)
 
 ```bash
-cd apps/web
+cd apps/studio
 npm install
 npm run dev      # dev server with hot-reload (proxies /api, /oauth2, /login, /logout, /whoami to the BFF at localhost:8082)
 npm run build    # production build
@@ -156,7 +156,7 @@ A small Spring Boot 3 application, deployed as a plain executable JAR (not a WAR
 
 See [documentation/vitepress/docs/web-services/authentication.md](documentation/vitepress/docs/web-services/authentication.md) for the full authentication flow (both this BFF-mediated flow and the direct-API-client flow).
 
-### Studio (`apps/web`)
+### Studio (`apps/studio`)
 
 Dialogue Branch Studio is a single-page Vue 3 app. Key structure:
 

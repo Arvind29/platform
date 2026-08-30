@@ -23,7 +23,7 @@ platform/
 
 - JDK 21+
 - Docker
-- Node.js 22+ (for `apps/web`)
+- Node.js 22+ (for `apps/studio`)
 
 ## Local Development
 
@@ -48,7 +48,7 @@ To run everything in Docker: API, Studio, Backend For Frontend (BFF), and a reve
 deployment (same `--build` note applies):
 
 ```bash
-docker compose --profile client up -d --build
+docker compose --profile studio up -d --build
 ```
 
 Studio is then available at [http://localhost:8080](http://localhost:8080).
@@ -66,7 +66,7 @@ Swagger UI: [http://localhost:8089/dlb-web-service/swagger-ui.html](http://local
 ### 3. Run Studio
 
 ```bash
-cd apps/web
+cd apps/studio
 npm install   # first time only
 npm run dev
 ```
@@ -122,7 +122,7 @@ manual copy/paste required.
 
 - **[packages/core](packages/core/README.md)** – Core Java library (Gradle)
 - **[apps/api](apps/api/README.md)** – Spring Boot REST API wrapping the core library (includes full deployment & Keycloak setup instructions)
-- **[apps/web](apps/web/README.md)** – Vue 3 / Vite front-end (`npm install && npm run dev`)
+- **[apps/studio](apps/studio/README.md)** – Vue 3 / Vite front-end, "Dialogue Branch Studio" (`npm install && npm run dev`)
 - **[apps/mock-variable-service](apps/mock-variable-service/)** – Mock external variable service
 
 ## Contributing

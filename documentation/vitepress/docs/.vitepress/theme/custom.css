@@ -1,5 +1,5 @@
 /*
- * Self-hosted "Roboto Slab", matching apps/web/src/assets/css/fonts.css so the
+ * Self-hosted "Roboto Slab", matching apps/studio/src/assets/css/fonts.css so the
  * documentation site and Dialogue Branch Studio render with the same
  * typeface.
  */
@@ -49,9 +49,9 @@
 }
 
 /*
- * Brand palette, matching apps/web/src/assets/css/theme.css's
- * --color-orange-* tokens (the accent color family used throughout the Web
- * Client for emphasis, links and highlighted lines).
+ * Brand palette, matching apps/studio/src/assets/css/theme.css's
+ * --color-orange-* tokens (the accent color family used throughout Dialogue
+ * Branch Studio for emphasis, links and highlighted lines).
  */
 :root {
   --vp-font-family-base: 'Roboto Slab', ui-sans-serif, system-ui, sans-serif;
