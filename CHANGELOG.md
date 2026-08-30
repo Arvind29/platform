@@ -22,6 +22,8 @@ and this project adheres to a single monorepo-wide version declared in `global.j
 
 ### Added
 
+- The debug bar at the bottom of the web client's dialogue test views now also shows the node
+  the current step is in, next to the ephemeral session / logged-dialogue id.
 - The web client's admin-only "Technical Information" dialog now also shows the Web Service's
   version and build time, its configured base URL (`dlb.base-url`), the host/port/scheme it
   observed on the incoming request (as seen by the service itself — behind the BFF proxy this is

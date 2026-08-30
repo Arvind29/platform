@@ -189,6 +189,13 @@ const activeTabId = ref(tabs.value[0].id);
 
 const activeTab = computed(() => tabs.value.find(t => t.id === activeTabId.value) ?? tabs.value[0]);
 
+// Node (title) of the dialogue step currently shown for the active tab — surfaced in the debug
+// bar alongside the session / logged-dialogue id.
+const activeStepNode = computed(() => {
+    const steps = activeTab.value.dialogueSteps;
+    return steps.length ? steps[steps.length - 1].node : null;
+});
+
 function getOrCreateEmptyTab() {
     const lastTab = tabs.value[tabs.value.length - 1];
     if (lastTab && !lastTab.dialogueName) return lastTab;
@@ -976,10 +983,10 @@ function onSelectReply(dialogueStep, reply) {
                 <TranslationEditor ref="translation-editor" :dialogueName="activeTab.dialogueName" @dialogueSaved="$emit('dialogueSaved')" />
             </MainPagePanelContainer>
             <div v-if="activeTab.isDraftTest && selectedMode !== 'edit' && selectedMode !== 'translate'" class="absolute bottom-3 left-3 font-mono text-[10px] text-gray-400 pointer-events-none">
-                <span class="font-semibold">Ephemeral Draft Test</span><template v-if="activeTab.draftSessionId"> — Session ID: {{ activeTab.draftSessionId }}</template>
+                <span class="font-semibold">Ephemeral Draft Test</span><template v-if="activeTab.draftSessionId"> — Session ID: {{ activeTab.draftSessionId }}</template><template v-if="activeStepNode"> — Node: {{ activeStepNode }}</template>
             </div>
             <div v-else-if="activeTab.loggedDialogueId && selectedMode !== 'edit' && selectedMode !== 'translate'" class="absolute bottom-3 left-3 font-mono text-[10px] text-gray-400 pointer-events-none">
-                <span class="font-semibold">Logged Dialogue ID:</span> {{ activeTab.loggedDialogueId }}
+                <span class="font-semibold">Logged Dialogue ID:</span> {{ activeTab.loggedDialogueId }}<template v-if="activeStepNode"> — Node: {{ activeStepNode }}</template>
             </div>
         </div>
 
