@@ -27,6 +27,11 @@ and this project adheres to a single monorepo-wide version declared in `global.j
 
 ### Fixed
 
+- Text-mode dialogue testing in the web client no longer shows a fresh dialogue's reply options
+  greyed out (or with one option falsely highlighted as already chosen). The component tracked
+  past reply selections by step index without clearing them when the dialogue was restarted,
+  reloaded, or when switching to another test tab, so stale entries carried over onto the new
+  content.
 - The web client's status bar no longer reports a misleading "Connected to `<host>` on port
   `<port>`" line. Since the client talks only to its own origin and the Web Service sits behind
   the BFF proxy, that host and port were the client's own, not the Web Service's. It now reads

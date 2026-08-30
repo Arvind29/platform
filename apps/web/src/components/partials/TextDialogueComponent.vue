@@ -42,7 +42,12 @@ const scrollToBottom = () => {
 
 defineExpose({ scrollToBottom });
 
-const selectedReplies = ref({});
+// Records which reply the user picked on each already-answered step, so it stays highlighted
+// while its siblings grey out. Keyed by the step object itself rather than its index: those
+// references are created fresh on every (re)start of a dialogue and are distinct per tab, so a
+// stale entry can never match a step of a different run — nothing leaks across a restart, a
+// step reload, or a switch to another test tab, and switching back keeps earlier highlights.
+const selectedReplies = ref(new Map());
 
 function isReplySelectable(stepIndex) {
     return stepIndex === props.dialogueSteps.length - 1 && !props.awaitingReply;
@@ -50,14 +55,15 @@ function isReplySelectable(stepIndex) {
 
 function onReplyClick(step, stepIndex, reply) {
     if (!isReplySelectable(stepIndex)) return;
-    selectedReplies.value[stepIndex] = reply.replyId;
+    selectedReplies.value.set(step, reply.replyId);
     emit('selectReply', step, reply);
 }
 
-function getBasicReplyNumberClasses(stepIndex, reply) {
-    if (selectedReplies.value[stepIndex] === reply.replyId) {
+function getBasicReplyNumberClasses(step, stepIndex, reply) {
+    const selected = selectedReplies.value.get(step);
+    if (selected === reply.replyId) {
         return 'text-interaction-reply-option';
-    } else if (selectedReplies.value[stepIndex] !== undefined) {
+    } else if (selected !== undefined) {
         return 'text-icon-button-disabled';
     } else if (isReplySelectable(stepIndex)) {
         return 'text-interaction-reply-option';
@@ -66,10 +72,11 @@ function getBasicReplyNumberClasses(stepIndex, reply) {
     }
 }
 
-function getBasicReplyTextClasses(stepIndex, reply) {
-    if (selectedReplies.value[stepIndex] === reply.replyId) {
+function getBasicReplyTextClasses(step, stepIndex, reply) {
+    const selected = selectedReplies.value.get(step);
+    if (selected === reply.replyId) {
         return 'text-interaction-reply-option';
-    } else if (selectedReplies.value[stepIndex] !== undefined) {
+    } else if (selected !== undefined) {
         return 'text-icon-button-disabled';
     } else if (isReplySelectable(stepIndex)) {
         return 'cursor-pointer text-interaction-reply-option hover:text-interaction-reply-option-hover';
@@ -104,13 +111,13 @@ function getBasicReplyTextClasses(stepIndex, reply) {
                 <div v-if="reply instanceof BasicReply" class="font-semibold flex gap-2">
                     <div
                         class="basis-0 grow-1 text-right"
-                        :class="getBasicReplyNumberClasses(stepIndex, reply)"
+                        :class="getBasicReplyNumberClasses(step, stepIndex, reply)"
                     >
                         {{ replyIndex + 1 }}: -
                     </div>
                     <div class="basis-0 grow-8">
                         <span
-                            :class="getBasicReplyTextClasses(stepIndex, reply)"
+                            :class="getBasicReplyTextClasses(step, stepIndex, reply)"
                             @click="onReplyClick(step, stepIndex, reply)"
                         >
                             <FontAwesomeIcon v-if="reply.endsDialogue" icon="fa-solid fa-xmark" class="mr-1 opacity-75" title="This reply ends the dialogue" />{{ reply.statement.fullStatement() }}
