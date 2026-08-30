@@ -1,6 +1,7 @@
-# dlb-web-client-vuejs
+# Dialogue Branch Studio (`dlb-studio`)
 
-This template should help get you started developing with Vue 3 in Vite.
+The Vue 3 / Vite front-end for authoring, testing, and serving Dialogue Branch dialogues. It
+talks only to the BFF (`apps/bff`), which proxies to the Web Service (`apps/api`).
 
 ## Recommended IDE Setup
 
