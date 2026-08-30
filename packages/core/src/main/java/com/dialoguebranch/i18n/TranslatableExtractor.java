@@ -114,7 +114,7 @@ public class TranslatableExtractor {
 		finishCurrentTranslatableSegment(speaker, addressee, body, current,
 				result);
 		for (Reply reply : body.getReplies()) {
-			if (reply.getStatement() != null) {
+			if (!reply.isAutoForward()) {
 				result.addAll(extractFromBody(addressee, speaker,
 						reply.getStatement()));
 			}

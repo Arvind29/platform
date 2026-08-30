@@ -142,7 +142,7 @@ public class BodyParser {
 				}
 				ReplyParser replyParser = new ReplyParser(nodeState);
 				Reply reply = replyParser.parse(tokens);
-				if (reply.getStatement() == null && hasAutoForwardReply(result.body)) {
+				if (reply.isAutoForward() && hasAutoForwardReply(result.body)) {
 					throw new LineNumberParseException(
 							"Found more than one autoforward reply",
 							token.getLineNumber(), token.getColNumber());
@@ -161,7 +161,7 @@ public class BodyParser {
 	
 	private boolean hasAutoForwardReply(NodeBody body) {
 		for (Reply reply : body.getReplies()) {
-			if (reply.getStatement() == null)
+			if (reply.isAutoForward())
 				return true;
 		}
 		return false;

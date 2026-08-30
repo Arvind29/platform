@@ -41,8 +41,6 @@ import nl.rrd.utils.expressions.EvaluationException;
 import com.dialoguebranch.model.execute.command.ActionCommand;
 
 /**
- * TODO: It may be nice to make Reply Abstract with different implementing subclasses, e.g.
- *       "AutoForwardReply" and "NormalReply".
  * A reply option within a {@link NodeBody}. A reply always has a pointer to the next node when the
  * reply is chosen. This might be a pointer to the end node. The reply usually has a statement that
  * is shown in the UI, but a node may have at most one reply without a statement, which is known as
@@ -126,9 +124,19 @@ public class Reply {
 	}
 
 	/**
+	 * Returns whether this is an auto-forward reply, i.e. a reply without a statement. A node may
+	 * have at most one such reply.
+	 *
+	 * @return true if this reply has no statement, false otherwise
+	 */
+	public boolean isAutoForward() {
+		return statement == null;
+	}
+
+	/**
 	 * Returns the statement. If this reply is an auto-forward reply, then this
 	 * method returns null.
-	 * 
+	 *
 	 * @return the statement or null
 	 */
 	public NodeBody getStatement() {

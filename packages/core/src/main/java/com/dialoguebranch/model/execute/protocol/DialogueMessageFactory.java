@@ -104,7 +104,7 @@ public class DialogueMessageFactory {
 	private static ReplyMessage generateDialogueReply(Reply reply) {
 		ReplyMessage replyMsg = new ReplyMessage();
 		replyMsg.setReplyId(reply.getReplyId());
-		if (reply.getStatement() != null) {
+		if (!reply.isAutoForward()) {
 			replyMsg.setStatement(generateDialogueStatement(
 					reply.getStatement()));
 		}

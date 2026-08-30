@@ -286,7 +286,7 @@ public class ProjectTool {
             }
 
             // Auto-forward if the only reply has no statement
-            if (replies.size() == 1 && replies.get(0).getStatement() == null) {
+            if (replies.size() == 1 && replies.get(0).isAutoForward()) {
                 System.out.println("\n[Auto-forward]\n");
                 NodePointer np;
                 try {
@@ -410,9 +410,9 @@ public class ProjectTool {
         System.out.println("---- Reply options ----");
         for (int i = 0; i < replies.size(); i++) {
             Reply reply = replies.get(i);
-            String label = reply.getStatement() != null
-                    ? reply.getStatement().toString().trim()
-                    : "(continue)";
+            String label = reply.isAutoForward()
+                    ? "(continue)"
+                    : reply.getStatement().toString().trim();
             System.out.println("  " + (i + 1) + ". " + label);
         }
         System.out.println("-----------------------");

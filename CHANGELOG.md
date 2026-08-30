@@ -26,6 +26,9 @@ and this project adheres to a single monorepo-wide version declared in `global.j
 
 ### Added
 
+- Core: `Reply.isAutoForward()` — names the "reply without a statement" check; the conceptual
+  call sites in the parser, executor, message factory, translatable extractor and CLI now use it
+  instead of open-coding `getStatement() == null`.
 - `apps/studio` now has a unit-test setup — Vitest + Vue Test Utils + jsdom, run with `npm test`.
   Initial coverage is the dialogue-testing views (reply-option highlighting, the per-tab scroll
   API, statement paragraph rendering, and the speech-bubble font-size ratchet) and the Dialogue

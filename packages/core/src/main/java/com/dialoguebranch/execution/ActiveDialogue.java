@@ -285,7 +285,7 @@ public class ActiveDialogue {
 					String.format("Reply with ID %s not found in dialogue \"%s\", node \"%s\"",
 					replyId, dialogueDefinition.getDialogueName(), currentNode.getTitle()));
 		}
-		if (selectedReply.getStatement() == null)
+		if (selectedReply.isAutoForward())
 			return DialogueBranchConstants.DLB_REPLY_STATEMENT_AUTOFORWARD;
 		StringBuilder result = new StringBuilder();
 		List<NodeBody.Segment> segments = selectedReply.getStatement()
