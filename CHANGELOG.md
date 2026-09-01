@@ -20,14 +20,15 @@ and this project adheres to a single monorepo-wide version declared in `global.j
   that was never built and was never functionally complete; editing now happens in Dialogue Branch
   Studio against the Web Service's own draft model. `editing.writer.ProjectMetaDataWriter` and
   `cli.DialogueBranchCLI` (the module's actual CLI, now repointed onto the runtime model) are
-  unaffected. Targets the next **major** version.
+  unaffected. Breaking, but the project is pre-1.0 (`0.x`), so this ships in the next minor
+  version rather than waiting for a major.
 - **Breaking:** Removed further stale CLI/vendor tooling from `dlb-core-java`
   ([#94](https://github.com/dialoguebranch/platform/issues/94)): `i18n.POEditorTools` (interactive
   import/export tooling tied to the POEditor SaaS, unused for years and with no tests), and
   `execution.parser.DialogueBranchParser`'s `main()`/`showUsage()` entry point (a single-file parse
   CLI made redundant by `cli.DialogueBranchCLI`; `DialogueBranchParser` itself is unaffected). Also
   removed `i18n.TranslationFile.writeToTSVFile()`, orphaned by #87's removal of its only caller.
-  Targets the next **major** version, alongside #87.
+  Ships in the next minor version, alongside #87 (pre-1.0, see above).
 - **Breaking:** Removed further dead code from `dlb-core-java`, found in a follow-up scan after
   #87/#94: `exception.ScriptParseException`, `exception.FileSystemException`, and
   `exception.VariableException` (each used only by the deleted editable-model layer),
@@ -36,8 +37,8 @@ and this project adheres to a single monorepo-wide version declared in `global.j
   `POEditorTools`), and two pre-existing orphans unrelated to either prior removal:
   `model.common.DatabaseStorageSource` (a `StorageSource` implementation never instantiated
   anywhere — the Web Service's DB-backed draft storage uses its own separate entities instead) and
-  `model.execute.DialogueStatus` (an unused enum, never wired into `DialogueState`). Targets the
-  next **major** version, alongside #87/#94.
+  `model.execute.DialogueStatus` (an unused enum, never wired into `DialogueState`). Ships in the
+  next minor version, alongside #87/#94 (pre-1.0, see above).
 
 ### Added
 

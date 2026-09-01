@@ -186,6 +186,8 @@ Edits in this mode operate on the draft copy of the dialogue (see [Draft dialogu
 
 All version bumps go in `global.json` only. Both Gradle build scripts read from it with `new groovy.json.JsonSlurper().parse(new File(..., 'global.json')).version`. Studio syncs via `npm run sync-version`. After updating `global.json`, run `./gradlew updateConfig` in each Gradle project (`apps/api`, `apps/mock-variable-service`) if building outside Docker.
 
+The project is **pre-1.0** and treats itself as pre-release: the version was deliberately reset from an inflated `2.0.x` to `0.1.x` on 2026-09-01 (GitHub tags re-numbered too) to signal this. Under `0.x.y`, a breaking change to `dlb-core-java`'s published API — or to any other public contract (REST endpoints, `.dlb` syntax, the External Variable Service protocol) — does **not** need to be deferred to a "next major"; it rides a normal minor bump (`0.1.x` → `0.2.0`). Still flag breaking changes clearly in `CHANGELOG.md` (a `**Breaking:**` note under the relevant category), but don't hold work back or design around backward compatibility purely to avoid a major bump. Full semver-style major-version discipline starts at `1.0.0`.
+
 Cut the actual GitHub release with `infrastructure/release/release-github.sh`. It prompts for a major/minor/patch release type and bumps `global.json` accordingly, splits `CHANGELOG.md`'s `[Unreleased]` section into a dated version section, commits both, tags `vX.Y.Z`, re-points the floating `latest` tag, pushes everything, and creates the GitHub release (via `gh`) using that changelog section as the release notes. Must be run from a clean `main` in sync with `origin/main`; it asks for confirmation before pushing anything.
 
 ## Required Config Files (not in version control)
