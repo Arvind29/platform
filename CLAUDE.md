@@ -31,7 +31,7 @@ cd packages/core
 ./gradlew test                                           # run all tests
 ./gradlew test --tests "com.dialoguebranch.ClassName"    # single test class
 ./gradlew test --tests "com.dialoguebranch.ClassName.methodName"  # single method
-./gradlew run -q --console=plain                         # run ProjectTool interactively
+./gradlew run -q --console=plain                         # run DialogueBranchCLI interactively
 ./gradlew run -q --console=plain --args="<project.xml>"  # or non-interactively (validate/CI); --args="--help" for the full syntax
 ./gradlew javadoc                                        # generate Javadoc to build/reports/javadoc/
 ./gradlew publishToMavenLocal                            # install locally before publishing
@@ -104,7 +104,7 @@ The `com.dialoguebranch` package is divided into:
 - **`editing`** — `ProjectMetaDataWriter`, used to export a project's metadata
 - **`i18n`** — Translation: `Translator` applies `.json` translation files to a `Dialogue`; `TranslatableExtractor` walks node bodies to extract translatable segments
 - **`exception`** — Typed exceptions (`NodeParseException`, `ExecutionException`, etc.)
-- **`cli`** — `ProjectTool` (default main class, interactive inspector)
+- **`cli`** — `DialogueBranchCLI` (default main class): interactive menu-driven session with no arguments, or non-interactive validate/execute with a project path and flags
 
 The test `sourceSets` for core includes `../../examples` as a resource directory, so example `.dlb` files are available in tests.
 

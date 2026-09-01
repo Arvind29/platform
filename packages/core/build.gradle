@@ -29,7 +29,7 @@ repositories {
 }
 
 application {
-	mainClass = "com.dialoguebranch.cli.ProjectTool"
+	mainClass = "com.dialoguebranch.cli.DialogueBranchCLI"
 }
 
 run {
@@ -70,7 +70,7 @@ dependencies {
 
 jar {
 	manifest {
-		attributes 'Main-Class': 'com.dialoguebranch.cli.ProjectTool'
+		attributes 'Main-Class': 'com.dialoguebranch.cli.DialogueBranchCLI'
 		attributes 'Class-Path': configurations.compileClasspath.collect({ it.name }).join(' ')
 	}
 }

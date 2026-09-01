@@ -59,8 +59,8 @@ import java.util.Map;
 import java.util.Scanner;
 
 /**
- * The {@link ProjectTool} is a command-line tool for inspecting and working with Dialogue Branch
- * projects, in two modes:
+ * The {@link DialogueBranchCLI} is a command-line tool for inspecting and working with Dialogue
+ * Branch projects, in two modes:
  * <ul>
  *     <li>Run with no arguments for an interactive, menu-driven session: a top-level menu, then a
  *     project-level sub-menu once a {@code dlb-project.xml} file has been loaded.</li>
@@ -72,7 +72,7 @@ import java.util.Scanner;
  *
  * @author Harm op den Akker
  */
-public class ProjectTool {
+public class DialogueBranchCLI {
 
     /** Process exit status: success. */
     private static final int EXIT_OK = 0;
@@ -88,10 +88,10 @@ public class ProjectTool {
     // -------------------------------------------------------- //
 
     /**
-     * Creates an instance of {@link ProjectTool}. This class is a collection of static methods and
-     * is not intended to be instantiated directly.
+     * Creates an instance of {@link DialogueBranchCLI}. This class is a collection of static
+     * methods and is not intended to be instantiated directly.
      */
-    public ProjectTool() { }
+    public DialogueBranchCLI() { }
 
     // ----------------------------------------------------- //
     // -------------------- Main Method -------------------- //
@@ -278,21 +278,21 @@ public class ProjectTool {
     private static void printUsage() {
         System.out.println("""
             Usage:
-              ProjectTool
+              DialogueBranchCLI
                   Launch the interactive, menu-driven session (the default with no arguments).
 
-              ProjectTool <path-to-dlb-project.xml> [--validate]
+              DialogueBranchCLI <path-to-dlb-project.xml> [--validate]
                   Parse the project non-interactively and print its summary. Prints any parse
                   errors to stderr and exits with a non-zero status if the project fails to
                   parse. Warnings (e.g. orphaned nodes) are printed but do not affect the exit
                   status. This is the default when only a path is given.
 
-              ProjectTool <path-to-dlb-project.xml> --execute <language> <dialogue>
+              DialogueBranchCLI <path-to-dlb-project.xml> --execute <language> <dialogue>
                   Parse the project, then run the given dialogue interactively on the terminal —
                   the same conversational execution as the interactive session's "Execute a
                   dialogue script" option.
 
-              ProjectTool -h | --help | -?
+              DialogueBranchCLI -h | --help | -?
                   Print this usage message.""");
     }
 

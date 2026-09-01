@@ -19,15 +19,15 @@ and this project adheres to a single monorepo-wide version declared in `global.j
   and `cli.CommandLineRunner`. This was the model layer for a Java-based dialogue-editing UI toolkit
   that was never built and was never functionally complete; editing now happens in Dialogue Branch
   Studio against the Web Service's own draft model. `editing.writer.ProjectMetaDataWriter` and
-  `cli.ProjectTool` (the module's actual CLI, now repointed onto the runtime model) are unaffected.
-  Targets the next **major** version.
+  `cli.DialogueBranchCLI` (the module's actual CLI, now repointed onto the runtime model) are
+  unaffected. Targets the next **major** version.
 - **Breaking:** Removed further stale CLI/vendor tooling from `dlb-core-java`
   ([#94](https://github.com/dialoguebranch/platform/issues/94)): `i18n.POEditorTools` (interactive
   import/export tooling tied to the POEditor SaaS, unused for years and with no tests), and
   `execution.parser.DialogueBranchParser`'s `main()`/`showUsage()` entry point (a single-file parse
-  CLI made redundant by `cli.ProjectTool`; `DialogueBranchParser` itself is unaffected). Also removed
-  `i18n.TranslationFile.writeToTSVFile()`, orphaned by #87's removal of its only caller. Targets the
-  next **major** version, alongside #87.
+  CLI made redundant by `cli.DialogueBranchCLI`; `DialogueBranchParser` itself is unaffected). Also
+  removed `i18n.TranslationFile.writeToTSVFile()`, orphaned by #87's removal of its only caller.
+  Targets the next **major** version, alongside #87.
 - **Breaking:** Removed further dead code from `dlb-core-java`, found in a follow-up scan after
   #87/#94: `exception.ScriptParseException`, `exception.FileSystemException`, and
   `exception.VariableException` (each used only by the deleted editable-model layer),
@@ -45,13 +45,14 @@ and this project adheres to a single monorepo-wide version declared in `global.j
   external) points to, and that isn't its own dialogue's Start node ([#105](https://github.com/dialoguebranch/platform/issues/105)).
   This can never cause a runtime error by design (a dialogue isn't required to link every node it
   defines), so it's reported as a warning via the existing `ProjectParserResult.getWarnings()`,
-  already visible in `ProjectTool`'s project summary.
-- Core: `cli.ProjectTool` now supports non-interactive, scriptable invocation alongside its
-  existing interactive menu ([#105](https://github.com/dialoguebranch/platform/issues/105)):
-  `ProjectTool <path-to-dlb-project.xml> [--validate]` parses a project and prints its summary,
-  exiting non-zero on parse errors (warnings, such as orphaned nodes, do not affect the exit
-  status) — usable as a CI gate. `ProjectTool <path> --execute <language> <dialogue>` runs a
-  specific dialogue, reusing the same interactive terminal conversation as before. The
+  already visible in `DialogueBranchCLI`'s project summary.
+- Core: `cli.DialogueBranchCLI` (renamed from `ProjectTool` — see below) now supports
+  non-interactive, scriptable invocation alongside its existing interactive menu
+  ([#105](https://github.com/dialoguebranch/platform/issues/105)):
+  `DialogueBranchCLI <path-to-dlb-project.xml> [--validate]` parses a project and prints its
+  summary, exiting non-zero on parse errors (warnings, such as orphaned nodes, do not affect the
+  exit status) — usable as a CI gate. `DialogueBranchCLI <path> --execute <language> <dialogue>`
+  runs a specific dialogue, reusing the same interactive terminal conversation as before. The
   no-argument interactive session is unchanged and remains the default.
 - Permission-based access control for the Web Service ([#28](https://github.com/dialoguebranch/platform/issues/28)):
   a `Permission` catalogue, a `Role` → permission mapping (`participant` ⊂ `editor` ⊂ `admin`),
@@ -59,6 +60,12 @@ and this project adheres to a single monorepo-wide version declared in `global.j
 
 ### Changed
 
+- Renamed `cli.ProjectTool` to `cli.DialogueBranchCLI`
+  ([#105](https://github.com/dialoguebranch/platform/issues/105)) — the old name dated back to
+  when it was one of several overlapping CLI entry points (see #87/#94); now that it's the
+  library's sole CLI and does more than inspect projects (it also validates and executes
+  dialogues), the name should say so. `build.gradle`'s `mainClass` and the jar manifest's
+  `Main-Class` are updated to match.
 - Endpoint authorization is now expressed as one required `Permission` per end-point (resolved
   from the caller's roles via the central role→permission map) instead of an inline list of
   accepted roles ([#58](https://github.com/dialoguebranch/platform/issues/58)). Which roles may

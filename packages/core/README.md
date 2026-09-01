@@ -17,7 +17,7 @@ Runnable entry points for interacting with the library from the command line.
 
 | Class | Description |
 |---|---|
-| `ProjectTool` | Interactive menu-driven tool for inspecting Dialogue Branch projects. Loads a `dlb-project.xml` and presents options such as printing a full project summary (language map, node counts per dialogue). This is the default main class. |
+| `DialogueBranchCLI` | Interactive menu-driven tool for inspecting Dialogue Branch projects with no arguments — loads a `dlb-project.xml` and presents options such as printing a full project summary (language map, node counts per dialogue) — or a non-interactive, scriptable validator/executor when given a project path and flags (see its own `--help`). This is the default main class. |
 
 ---
 
@@ -126,12 +126,12 @@ with the Gradle build script.
 Here is a list of common useful tasks:
 - `./gradlew clean` - Cleans all generated output build files (deletes the `/build/` folder).
 - `./gradlew build` - Compiles and builds everything.
-- `./gradlew run -q --console=plain` - Runs the library's main class (`ProjectTool`) in its
+- `./gradlew run -q --console=plain` - Runs the library's main class (`DialogueBranchCLI`) in its
   interactive, menu-driven mode. The `-q` flag tells Gradle to be "quiet", while
   `--console=plain` hides the `<=========----> 75% EXECUTING` progress bar. Both flags are needed
-  for `ProjectTool`'s interactive command-line input to work properly.
+  for `DialogueBranchCLI`'s interactive command-line input to work properly.
 - `./gradlew run -q --console=plain --args="<path-to-dlb-project.xml> [--validate]"` - Runs
-  `ProjectTool` non-interactively instead: parses the project, prints its summary, and exits
+  `DialogueBranchCLI` non-interactively instead: parses the project, prints its summary, and exits
   non-zero on parse errors — usable as a CI gate. `--args="--help"` prints the full syntax,
   including `--execute <language> <dialogue>` to run a specific dialogue.
 - `./gradlew test` - Runs all unit tests. You can run a single test class with
