@@ -1,0 +1,69 @@
+name: Bug report
+description: Report something that is broken or behaving incorrectly.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug. Please search
+        [existing issues](https://github.com/dialoguebranch/platform/issues?q=is%3Aissue)
+        first — someone may already have reported it.
+
+        **Do not report security vulnerabilities here.** See
+        [SECURITY.md](https://github.com/dialoguebranch/platform/blob/main/SECURITY.md).
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Which part of the platform does this affect?
+      options:
+        - Core Java (packages/core)
+        - Web Service (apps/api)
+        - BFF (apps/bff)
+        - Studio (apps/studio)
+        - External Variable Service
+        - Documentation
+        - Infrastructure / build / tooling
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug, including what you expected to happen instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: The smallest sequence of steps that reliably triggers the bug.
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version / commit
+      description: The release version (from `global.json`) or the commit SHA you are on.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Java version, Node version, browser, deployment mode (local stack / Docker / other) — whatever is relevant.
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs or output
+      description: Paste any stack traces or console output. This is automatically formatted as code.
+      render: shell
+    validations:
+      required: false

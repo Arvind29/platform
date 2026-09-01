@@ -127,5 +127,16 @@ manual copy/paste required.
 
 ## Contributing
 
-If you run into issues, please open an [Issue](https://github.com/dialoguebranch/platform/issues)
-or contact `info@dialoguebranch.com`.
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for how to get
+set up, the branch / commit / changelog conventions, and the pull-request
+process. Issues labelled
+[`good first issue`](https://github.com/dialoguebranch/platform/labels/good%20first%20issue)
+are a good place to start.
+
+- Report a bug or request a feature: open an
+  [issue](https://github.com/dialoguebranch/platform/issues/new/choose).
+- Report a security vulnerability: **privately**, per [SECURITY.md](SECURITY.md) —
+  not via a public issue.
+- General questions: `info@dialoguebranch.com`.
+
+This project follows a [Code of Conduct](CODE_OF_CONDUCT.md).
