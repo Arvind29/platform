@@ -27,9 +27,13 @@ class AzpClaimValidatorTest {
     private Logger validatorLogger;
     private ListAppender<ILoggingEvent> logAppender;
 
+    private Level originalLevel;
+
     @BeforeEach
     void attachLogAppender() {
         validatorLogger = (Logger) LoggerFactory.getLogger(AzpClaimValidator.class);
+        originalLevel = validatorLogger.getLevel();
+        validatorLogger.setLevel(Level.DEBUG); // so the DEBUG-after-cap path is observable too
         logAppender = new ListAppender<>();
         logAppender.start();
         validatorLogger.addAppender(logAppender);
@@ -38,6 +42,7 @@ class AzpClaimValidatorTest {
     @AfterEach
     void detachLogAppender() {
         validatorLogger.detachAppender(logAppender);
+        validatorLogger.setLevel(originalLevel);
     }
 
     private static Jwt tokenWithAzp(String azp) {
@@ -54,6 +59,10 @@ class AzpClaimValidatorTest {
 
     private long warnCount() {
         return logAppender.list.stream().filter(e -> e.getLevel() == Level.WARN).count();
+    }
+
+    private long logCount() {
+        return logAppender.list.size();
     }
 
     @Test
@@ -108,5 +117,24 @@ class AzpClaimValidatorTest {
             validator.validate(tokenWithAzp("intruder-" + i));
         }
         assertEquals(AzpClaimValidator.WARN_CACHE_CAP, warnCount());
+    }
+
+    @Test
+    void doesNotReLogARepeatOfAnAzpFirstSeenAfterTheCap() {
+        AzpClaimValidator validator = new AzpClaimValidator(List.of("dlb-web-service"));
+        for (int i = 0; i < AzpClaimValidator.WARN_CACHE_CAP; i++) {
+            validator.validate(tokenWithAzp("intruder-" + i));
+        }
+        assertEquals(AzpClaimValidator.WARN_CACHE_CAP, logCount()); // all WARN, cap reached
+
+        // A value first seen past the cap logs once (at DEBUG), then stays silent on repeats —
+        // it must not log afresh on every request.
+        validator.validate(tokenWithAzp("late-intruder"));
+        long afterFirstSighting = logCount();
+        assertEquals(AzpClaimValidator.WARN_CACHE_CAP + 1, afterFirstSighting);
+
+        validator.validate(tokenWithAzp("late-intruder"));
+        validator.validate(tokenWithAzp("late-intruder"));
+        assertEquals(afterFirstSighting, logCount());
     }
 }
