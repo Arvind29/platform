@@ -162,6 +162,11 @@ services:
       # Swagger UI — differs from DLB_AUTH_KEYCLOAK_BASE_URL because the container-internal
       # "keycloak" hostname above is not reachable from the developer's browser.
       DLB_AUTH_KEYCLOAK_BROWSER_BASE_URL: http://localhost:8081/
+      # Tokens are accepted only from the clients listed in DLB_AUTH_KEYCLOAK_TRUSTED_CLIENTS,
+      # matched on the token's "azp" claim (see apps/api AzpClaimValidator). Left unset here: the
+      # default already trusts "dlb-web-service" (direct API clients, Swagger UI) and "dlb-bff"
+      # (calls proxied through the BFF, i.e. all of Dialogue Branch Studio). Set it to a
+      # comma-separated list to trust additional clients, or to "*" to trust any client in the realm.
       DLB_MARIADB_HOST: mariadb
       DLB_MARIADB_PASSWORD: dev
     ports:

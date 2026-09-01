@@ -26,6 +26,18 @@ and this project adheres to a single monorepo-wide version declared in `global.j
   Import / New project) no longer name a specific role — they now read "You don't have permission
   to …", so they stay correct if the role a capability requires ever changes.
 
+### Security
+
+- The Web Service now checks each token's `azp` (client) claim against
+  `dlb.auth.keycloak.trusted-clients` (env `DLB_AUTH_KEYCLOAK_TRUSTED_CLIENTS`), on top of the
+  existing signature/issuer/expiry checks. Unset, it trusts its own `client-id` and the BFF's
+  (`dlb-bff`), which covers the standard topology (direct API clients / Swagger UI, and Dialogue
+  Branch Studio via the BFF) with no configuration. Set the property to a comma-separated list to
+  trust additional clients in a shared realm, or to a single `*` to accept any client from a
+  trusted realm (the previous behaviour); an explicit list replaces the default entirely, so it
+  must still name `dlb-bff` on a BFF-fronted deployment. Tokens from an untrusted client are
+  rejected with `401` ([#67](https://github.com/dialoguebranch/platform/issues/67)).
+
 ## [2.0.8] - 2026-09-01
 
 ### Changed

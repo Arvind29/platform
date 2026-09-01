@@ -59,6 +59,7 @@ the Authorization Code + PKCE flow.
 | `DLB_AUTH_KEYCLOAK_BROWSER_BASE_URL` | same as `DLB_AUTH_KEYCLOAK_BASE_URL` | No | Base URL a user's browser can reach Keycloak at, used to build the OAuth2 URLs shown in Swagger UI. Only needed when it differs from `DLB_AUTH_KEYCLOAK_BASE_URL` (e.g. containerized deployments where Keycloak has a different internal vs. external hostname) |
 | `DLB_AUTH_KEYCLOAK_REALM` | `dialoguebranch` | Yes | Keycloak realm name |
 | `DLB_AUTH_KEYCLOAK_CLIENT_ID` | `dlb-web-service` | Yes | Keycloak client ID |
+| `DLB_AUTH_KEYCLOAK_TRUSTED_CLIENTS` | `<client-id>,dlb-bff` | No | Comma-separated client IDs whose tokens are accepted, matched against each token's `azp` claim. Unset: this service's own client ID plus the BFF's (`dlb-bff`). An explicit list replaces that default (so keep `dlb-bff` if behind the BFF); a single `*` accepts any client from a trusted realm |
 
 ### Database
 
