@@ -29,8 +29,8 @@
 package com.dialoguebranch.i18n;
 
 /**
- * A {@link TranslationTerm} models a piece of text and a description of its context that can is
- * used by the {@link POEditorTools} class for generating files that can be consumed by POEditor.
+ * A {@link TranslationTerm} models a piece of text and a description of its context that is
+ * used within a translation file.
  *
  * @author Harm op den Akker
  */

@@ -34,9 +34,7 @@ import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -171,36 +169,6 @@ public class TranslationFile {
 
 		// convert map to JSON file
 		writer.writeValue(file, contentMap);
-	}
-
-	/**
-	 * Appends the contents of this {@link TranslationFile} to the given {@link File} in
-	 * tab-separated-value (TSV) format. Each row contains three tab-separated columns:
-	 * {@code speakerName}, {@code term}, and {@code translation}.
-	 *
-	 * <p>The file is opened in append mode, so existing content is preserved.</p>
-	 *
-	 * @param file the TSV {@link File} to append to.
-	 * @throws IOException in case any file writing error occurs.
-	 */
-	public void writeToTSVFile(File file) throws IOException {
-		try (BufferedWriter writer = new BufferedWriter(new FileWriter(file,true))) {
-			for (Map.Entry<String, Map<String, String>> entry : contentMap.entrySet()) {
-				String speakerName = entry.getKey();
-				Map<String, String> terms = entry.getValue();
-
-				for (Map.Entry<String, String> termEntry : terms.entrySet()) {
-					String term = termEntry.getKey();
-					String translation = termEntry.getValue();
-
-					writer.write(speakerName + "\t" + term + "\t" + translation);
-					writer.newLine();
-				}
-			}
-			writer.flush();
-		} catch (IOException ex) {
-			throw ex;
-		}
 	}
 
 	/**

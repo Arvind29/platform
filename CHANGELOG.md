@@ -21,6 +21,13 @@ and this project adheres to a single monorepo-wide version declared in `global.j
   Studio against the Web Service's own draft model. `editing.writer.ProjectMetaDataWriter` and
   `cli.ProjectTool` (the module's actual CLI, now repointed onto the runtime model) are unaffected.
   Targets the next **major** version.
+- **Breaking:** Removed further stale CLI/vendor tooling from `dlb-core-java`
+  ([#94](https://github.com/dialoguebranch/platform/issues/94)): `i18n.POEditorTools` (interactive
+  import/export tooling tied to the POEditor SaaS, unused for years and with no tests), and
+  `execution.parser.DialogueBranchParser`'s `main()`/`showUsage()` entry point (a single-file parse
+  CLI made redundant by `cli.ProjectTool`; `DialogueBranchParser` itself is unaffected). Also removed
+  `i18n.TranslationFile.writeToTSVFile()`, orphaned by #87's removal of its only caller. Targets the
+  next **major** version, alongside #87.
 
 ### Added
 

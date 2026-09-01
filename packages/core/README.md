@@ -18,18 +18,16 @@ Runnable entry points for interacting with the library from the command line.
 | Class | Description |
 |---|---|
 | `ProjectTool` | Interactive menu-driven tool for inspecting Dialogue Branch projects. Loads a `dlb-project.xml` and presents options such as printing a full project summary (language map, node counts per dialogue). This is the default main class. |
-| `CommandLineRunner` | Earlier interactive runner covering a broader set of ad-hoc tasks: parsing individual scripts, generating translation files and TSV export files, and generating project summaries from a folder or metadata file. |
 
 ---
 
 ### `model` — Data Model
 
-The data model is split into three sub-packages reflecting the lifecycle of a Dialogue Branch
-project.
+The data model is split into two sub-packages.
 
 #### `model/common` — Shared Structures
 
-Types used by both the editing and execution layers.
+Types shared across the project model.
 
 | Class | Description |
 |---|---|
@@ -39,27 +37,13 @@ Types used by both the editing and execution layers.
 | `ResourceType` | Enum: `SCRIPT`, `TRANSLATION`, or `FOLDER`. |
 | `DialogueBranchConstants` | File extensions (`.dlb`, `.json`) and other shared constants. |
 
-#### `model/edit` — Editable Model
-
-A mutable, editor-friendly representation of a project and its scripts. Used by tools that need
-to inspect or modify scripts without executing them.
-
-| Class | Description |
-|---|---|
-| `EditableProject` | Top-level container for an editable project: metadata plus a map from language to `ScriptTreeNode`. Provides methods for generating translation `.json` files and TSV exports. |
-| `EditableScript` | An editable script: a list of `EditableNode`s with property-change support. |
-| `EditableNode` | A single dialogue node in its editable form, consisting of an `EditableHeader` and `EditableBody`. |
-| `EditableHeader` / `EditableBody` | Header (title, tags) and body (raw text content) of a node. |
-| `EditableTranslation` / `EditableTranslationSet` | Editable representation of a translation file and a set of such files. |
-| `Editable` | Base class providing `PropertyChangeSupport` for all editable model objects. |
-
 #### `model/execute` — Execution Model
 
 The fully parsed, immutable model used at runtime when executing dialogues.
 
 | Class | Description |
 |---|---|
-| `Project` | Top-level runtime project: source dialogues, translations, and lookup logic. |
+| `ExecutableProject` | Top-level runtime project: source dialogues, translations, and lookup logic. Holds all dialogues and translation maps; provides `getTranslatedDialogue()` for runtime lookup. |
 | `Dialogue` | A parsed dialogue script: an ordered list of `Node`s. |
 | `Node` | A single dialogue node with a `NodeHeader` and `NodeBody`. |
 | `NodeBody` | The body of a node: a list of segments that may be plain text, variable references, commands, or reply options. |
@@ -68,7 +52,6 @@ The fully parsed, immutable model used at runtime when executing dialogues.
 | `VariableString` | A string that may contain embedded variable references (`$varName`). |
 | `Language` / `LanguageSet` / `LanguageMap` | Language definitions and source-to-translation mappings as declared in `dlb-project.xml`. |
 | `FileDescriptor` | Identifies a dialogue by name and language code. |
-| `Project` | Holds all dialogues and translation maps; provides `getTranslatedDialogue()` for runtime lookup. |
 | `LoggedDialogue` / `LoggedInteraction` | Record types for persisting a user's dialogue session history. |
 | `DialogueState` / `DialogueStatus` | State tracking for a dialogue that is currently in progress. |
 | `command/` | `Command` subtypes: `SetCommand`, `IfCommand`, `RandomCommand`, `ActionCommand`, and the family of `InputCommand`s (`InputTextCommand`, `InputNumericCommand`, etc.). |
@@ -91,21 +74,11 @@ Runtime classes that drive an active dialogue session for a given user.
 
 ---
 
-### `editing` — Editing-Layer Parsers and Writers
-
-Parsers and writers for the editable model. These operate on raw files and produce or consume
-`model/edit` objects.
+### `editing` — Editing-Layer Writers
 
 | Class | Description |
 |---|---|
-| `parser/EditableScriptParser` | Parses a `.dlb` file into an `EditableScript`. |
-| `parser/EditableProjectParser` | Reads a `dlb-project.xml` and assembles an `EditableProject` by scanning the filesystem for scripts and translation files. |
-| `parser/EditableTranslationParser` | Parses a translation `.json` file into an `EditableTranslation`. |
-| `parser/EditableHeaderParser` / `EditableBodyParser` | Parsers for the header and body sections of a `.dlb` node. |
-| `writer/EditableScriptWriter` | Serialises an `EditableScript` back to `.dlb` format. |
-| `writer/EditableTranslationWriter` | Serialises translation data to a `.json` file. |
 | `writer/ProjectMetaDataWriter` | Writes a `ProjectMetaData` object back to `dlb-project.xml`. |
-| `warning/ParserWarning` | Carries a non-fatal warning message emitted during parsing. |
 
 ---
 
@@ -121,10 +94,9 @@ Translation extraction, storage, and application.
 | `SourceTranslatable` | A `Translatable` paired with the speaker name that provides its translation context key. |
 | `TranslationContext` | Carries the locale/context in which a translation is applied. |
 | `ContextTranslation` | A translated string bound to a specific `TranslationContext`. |
-| `TranslationFile` | In-memory representation of a `.json` translation file, with read/write and TSV export support. |
+| `TranslationFile` | In-memory representation of a `.json` translation file, with read/write support. |
 | `TranslationParser` / `TranslationParserResult` | Parses a `.json` translation file. |
 | `TranslationTerm` | A single source–translation pair within a translation file. |
-| `POEditorTools` | Utilities for generating POEditor-compatible export strings from translatable segments. |
 
 ---
 
