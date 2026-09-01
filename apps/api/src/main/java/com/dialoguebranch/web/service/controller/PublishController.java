@@ -30,7 +30,7 @@ package com.dialoguebranch.web.service.controller;
 
 import com.dialoguebranch.web.service.Application;
 import com.dialoguebranch.web.service.QueryRunner;
-import com.dialoguebranch.web.service.auth.AuthenticationInfo;
+import com.dialoguebranch.web.service.auth.Permission;
 import com.dialoguebranch.web.service.exception.HttpException;
 import com.dialoguebranch.web.service.exception.NotFoundException;
 import com.dialoguebranch.web.service.project.ProjectService;
@@ -122,8 +122,7 @@ public class PublishController {
 									"Project not found: " + projectSlug));
 					return publishService.listVersions(project);
 				},
-				version, ControllerFunctions.extractAccessToken(request), response, "", application,
-				AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, "", application, Permission.PUBLISH_READ);
 	}
 
 	/**
@@ -154,8 +153,7 @@ public class PublishController {
 									"Project not found: " + projectSlug));
 					return publishService.getNextVersionNumber(project);
 				},
-				version, ControllerFunctions.extractAccessToken(request), response, "", application,
-				AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, "", application, Permission.PUBLISH_READ);
 	}
 
 	/**
@@ -191,8 +189,7 @@ public class PublishController {
 						throw new RuntimeException(e);
 					}
 				},
-				version, ControllerFunctions.extractAccessToken(request), response, "", application,
-				AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, "", application, Permission.PUBLISH_READ);
 	}
 
 	/**
@@ -228,8 +225,7 @@ public class PublishController {
 						throw new RuntimeException(e);
 					}
 				},
-				version, ControllerFunctions.extractAccessToken(request), response, "", application,
-				AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, "", application, Permission.PUBLISH_CREATE);
 	}
 
 }

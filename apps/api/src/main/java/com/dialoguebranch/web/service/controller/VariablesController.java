@@ -36,7 +36,7 @@ import com.dialoguebranch.web.service.controller.schema.ProjectVariableInfo;
 import com.dialoguebranch.web.service.Application;
 import com.dialoguebranch.web.service.ProtocolVersion;
 import com.dialoguebranch.web.service.QueryRunner;
-import com.dialoguebranch.web.service.auth.AuthenticationInfo;
+import com.dialoguebranch.web.service.auth.Permission;
 import com.dialoguebranch.web.service.exception.BadRequestException;
 import com.dialoguebranch.web.service.exception.ErrorCode;
 import com.dialoguebranch.web.service.exception.HttpError;
@@ -161,17 +161,14 @@ public class VariablesController {
 		// Make sure the passed on String is not null
 		String variableNameList = Objects.requireNonNullElse(variableNames, "");
 
-		// Extract the access token, and throw an exception if it is not provided correctly
-		String accessToken = ControllerFunctions.extractAccessToken(request);
-
 		if(delegateUser == null || delegateUser.isEmpty()) {
 			return QueryRunner.runQuery(
 				(protocolVersion, authenticatedUser) -> doGetVariables(authenticatedUser, variableNameList, timeZone),
-				version, accessToken, response, delegateUser, application, AuthenticationInfo.USER_ROLE_PARTICIPANT, AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, delegateUser, application, Permission.VARIABLE_READ_OWN);
 		} else {
 			return QueryRunner.runQuery(
 				(protocolVersion, authenticatedUser) -> doGetVariables(delegateUser, variableNameList, timeZone),
-				version, accessToken, response, delegateUser, application, AuthenticationInfo.USER_ROLE_PARTICIPANT, AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, delegateUser, application, Permission.VARIABLE_READ_OWN);
 		}
 	}
 
@@ -216,12 +213,10 @@ public class VariablesController {
 
 		logger.info("GET /v" + version + "/variables/list-project?projectSlug=" + projectSlug);
 
-		String accessToken = ControllerFunctions.extractAccessToken(request);
 		return QueryRunner.runQuery(
 			(protocolVersion, authenticatedUser) ->
 				application.getApplicationManager().getProjectVariables(projectSlug),
-			version, accessToken, response, "", application,
-			AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+			version, response, "", application, Permission.VARIABLE_INSPECT_PROJECT);
 	}
 
 	/**
@@ -350,17 +345,14 @@ public class VariablesController {
 		if(!(timeZone == null)) logInfo += "&timeZone=" + timeZone;
 		logger.info(logInfo);
 
-		// Extract the access token, and throw an exception if it is not provided correctly
-		String accessToken = ControllerFunctions.extractAccessToken(request);
-
 		if(delegateUser == null || delegateUser.isEmpty()) {
 			QueryRunner.runQuery((protocolVersion, authenticatedUser) ->
 				doSetVariable(authenticatedUser, name, value, timeZone),
-				version, accessToken, response, delegateUser, application, AuthenticationInfo.USER_ROLE_PARTICIPANT, AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, delegateUser, application, Permission.VARIABLE_WRITE_OWN);
 		} else {
 			QueryRunner.runQuery((protocolVersion, authenticatedUser) ->
 				doSetVariable(delegateUser, name, value, timeZone),
-				version, accessToken, response, delegateUser, application, AuthenticationInfo.USER_ROLE_PARTICIPANT, AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, delegateUser, application, Permission.VARIABLE_WRITE_OWN);
 		}
 	}
 
@@ -470,17 +462,14 @@ public class VariablesController {
 			logInfo += "?delegateUser=" + delegateUser;
 		logger.info(logInfo);
 
-		// Extract the access token, and throw an exception if it is not provided correctly
-		String accessToken = ControllerFunctions.extractAccessToken(request);
-
 		if(delegateUser == null || delegateUser.isEmpty()) {
 			QueryRunner.runQuery((protocolVersion, authenticatedUser) ->
 							doSetVariables(authenticatedUser, variables, timeZone),
-				version, accessToken, response, delegateUser, application, AuthenticationInfo.USER_ROLE_PARTICIPANT, AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, delegateUser, application, Permission.VARIABLE_WRITE_OWN);
 		} else {
 			QueryRunner.runQuery((protocolVersion, authenticatedUser) ->
 							doSetVariables(delegateUser, variables, timeZone),
-				version, accessToken, response, delegateUser, application, AuthenticationInfo.USER_ROLE_PARTICIPANT, AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, delegateUser, application, Permission.VARIABLE_WRITE_OWN);
 		}
 	}
 

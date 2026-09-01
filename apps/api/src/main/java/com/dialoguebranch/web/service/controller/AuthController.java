@@ -116,10 +116,9 @@ public class AuthController {
 
 		logger.info("POST /v{}/auth/logout", version);
 
-		String accessToken = ControllerFunctions.extractAccessToken(request);
-		QueryRunner.runQuery(
-				(protocolVersion, userId) -> doLogout(userId),
-				version, accessToken, response, "", application);
+		var authInfo = QueryRunner.validateAccessToken(
+				ControllerFunctions.extractAccessToken(request), application);
+		doLogout(authInfo.getUsername());
 	}
 
 	private Void doLogout(String userId) {

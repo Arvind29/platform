@@ -35,7 +35,7 @@ import com.dialoguebranch.model.execute.protocol.DialogueMessageFactory;
 import com.dialoguebranch.model.execute.protocol.NullableResponse;
 import com.dialoguebranch.web.service.Application;
 import com.dialoguebranch.web.service.QueryRunner;
-import com.dialoguebranch.web.service.auth.AuthenticationInfo;
+import com.dialoguebranch.web.service.auth.Permission;
 import com.dialoguebranch.web.service.controller.schema.DraftDialogueMessage;
 import com.dialoguebranch.web.service.exception.BadRequestException;
 import com.dialoguebranch.web.service.exception.ForbiddenException;
@@ -183,8 +183,7 @@ public class DraftExecutionController {
 							DialogueMessageFactory.generateDialogueMessage(result.executeNodeResult());
 					return new DraftDialogueMessage(result.sessionId(), message);
 				},
-				version, ControllerFunctions.extractAccessToken(request), response, delegateUser,
-				application, AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, delegateUser, application, Permission.DIALOGUE_DRAFT_TEST);
 	}
 
 	/**
@@ -260,8 +259,7 @@ public class DraftExecutionController {
 					return new NullableResponse<>(
 							DialogueMessageFactory.generateDialogueMessage(nextNode));
 				},
-				version, ControllerFunctions.extractAccessToken(request), response, delegateUser,
-				application, AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, delegateUser, application, Permission.DIALOGUE_DRAFT_TEST);
 	}
 
 	/**
@@ -300,8 +298,7 @@ public class DraftExecutionController {
 					draftExecutionService.cancelSession(session);
 					return null;
 				},
-				version, ControllerFunctions.extractAccessToken(request), response, delegateUser,
-				application, AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, delegateUser, application, Permission.DIALOGUE_DRAFT_TEST);
 	}
 
 	/**
@@ -347,8 +344,7 @@ public class DraftExecutionController {
 					draftExecutionService.revertVariables(session, userService);
 					return null;
 				},
-				version, ControllerFunctions.extractAccessToken(request), response, delegateUser,
-				application, AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, delegateUser, application, Permission.DIALOGUE_DRAFT_TEST);
 	}
 
 	/**

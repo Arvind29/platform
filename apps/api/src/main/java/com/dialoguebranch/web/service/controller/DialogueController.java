@@ -43,7 +43,7 @@ import com.dialoguebranch.model.execute.ResourcePointer;
 import com.dialoguebranch.web.service.Application;
 import com.dialoguebranch.web.service.ProtocolVersion;
 import com.dialoguebranch.web.service.QueryRunner;
-import com.dialoguebranch.web.service.auth.AuthenticationInfo;
+import com.dialoguebranch.web.service.auth.Permission;
 import com.dialoguebranch.web.service.controller.schema.DialogueListPayload;
 import com.dialoguebranch.web.service.controller.schema.OngoingDialoguePayload;
 import com.dialoguebranch.web.service.exception.BadRequestException;
@@ -203,19 +203,16 @@ public class DialogueController {
 		if(startNodeId != null && !startNodeId.isEmpty()) logInfo += "&startNodeId=" + startNodeId;
 		logger.info(logInfo);
 
-		// Extract the access token, and throw an exception if it is not provided correctly
-		String accessToken = ControllerFunctions.extractAccessToken(request);
-
 		if(delegateUser == null || delegateUser.isEmpty()) {
 			return QueryRunner.runQuery(
 					(protocolVersion, authenticatedUser) -> doStartDialogue(authenticatedUser,
 							projectSlug, dialogueName, language, timeZone, sessionId, startNodeId),
-					version, accessToken, response, delegateUser, application, AuthenticationInfo.USER_ROLE_PARTICIPANT, AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+					version, response, delegateUser, application, Permission.DIALOGUE_RUN);
 		} else {
 			return QueryRunner.runQuery(
 					(protocolVersion, authenticatedUser) -> doStartDialogue(delegateUser,
 							projectSlug, dialogueName, language, timeZone, sessionId, startNodeId),
-					version, accessToken, response, delegateUser, application, AuthenticationInfo.USER_ROLE_PARTICIPANT, AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+					version, response, delegateUser, application, Permission.DIALOGUE_RUN);
 		}
 	}
 
@@ -348,19 +345,16 @@ public class DialogueController {
 			logInfo += "&delegateUser="+delegateUser;
 		logger.info(logInfo);
 
-		// Extract the access token, and throw an exception if it is not provided correctly
-		String accessToken = ControllerFunctions.extractAccessToken(request);
-
 		if(delegateUser == null || delegateUser.isEmpty()) {
 			return QueryRunner.runQuery(
 				(protocolVersion, authenticatedUser) -> doProgressDialogue(authenticatedUser, request,
 						loggedDialogueId, loggedInteractionIndex, replyId),
-				version, accessToken, response, delegateUser, application, AuthenticationInfo.USER_ROLE_PARTICIPANT, AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, delegateUser, application, Permission.DIALOGUE_RUN);
 		} else {
 			return QueryRunner.runQuery(
 				(protocolVersion, authenticatedUser) -> doProgressDialogue(delegateUser, request,
 					loggedDialogueId, loggedInteractionIndex, replyId),
-				version, accessToken, response, delegateUser, application, AuthenticationInfo.USER_ROLE_PARTICIPANT, AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, delegateUser, application, Permission.DIALOGUE_RUN);
 		}
 	}
 
@@ -501,19 +495,16 @@ public class DialogueController {
 			logInfo += "&delegateUser="+delegateUser;
 		logger.info(logInfo);
 
-		// Extract the access token, and throw an exception if it is not provided correctly
-		String accessToken = ControllerFunctions.extractAccessToken(request);
-
 		if(delegateUser == null || delegateUser.isEmpty()) {
 			return QueryRunner.runQuery(
 					(protocolVersion, authenticatedUser) -> doContinueDialogue(authenticatedUser,
 							projectSlug, dialogueName, timeZone),
-					version, accessToken, response, delegateUser, application, AuthenticationInfo.USER_ROLE_PARTICIPANT, AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+					version, response, delegateUser, application, Permission.DIALOGUE_RUN);
 		} else {
 			return QueryRunner.runQuery(
 					(protocolVersion, authenticatedUser) ->
 							doContinueDialogue(delegateUser, projectSlug, dialogueName, timeZone),
-					version, accessToken, response, delegateUser, application, AuthenticationInfo.USER_ROLE_PARTICIPANT, AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+					version, response, delegateUser, application, Permission.DIALOGUE_RUN);
 		}
 	}
 
@@ -643,15 +634,12 @@ public class DialogueController {
 				+ delegateUser;
 		logger.info(logInfo);
 
-		// Extract the access token, and throw an exception if it is not provided correctly
-		String accessToken = ControllerFunctions.extractAccessToken(request);
-
 		if(delegateUser == null || delegateUser.isEmpty()) {
 			QueryRunner.runQuery((protocolVersion, authenticatedUser) -> doCancelDialogue(authenticatedUser,
-				loggedDialogueId), version, accessToken, response, delegateUser, application, AuthenticationInfo.USER_ROLE_PARTICIPANT, AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+				loggedDialogueId), version, response, delegateUser, application, Permission.DIALOGUE_RUN);
 		} else {
 			QueryRunner.runQuery((protocolVersion, authenticatedUser) -> doCancelDialogue(delegateUser,
-				loggedDialogueId), version, accessToken, response, delegateUser, application, AuthenticationInfo.USER_ROLE_PARTICIPANT, AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+				loggedDialogueId), version, response, delegateUser, application, Permission.DIALOGUE_RUN);
 		}
 	}
 
@@ -760,19 +748,16 @@ public class DialogueController {
 				+ delegateUser;
 		logger.info(logInfo);
 
-		// Extract the access token, and throw an exception if it is not provided correctly
-		String accessToken = ControllerFunctions.extractAccessToken(request);
-
 		if(delegateUser == null || delegateUser.isEmpty()) {
 			return QueryRunner.runQuery(
 				(protocolVersion, authenticatedUser) -> doBackDialogue(authenticatedUser, loggedDialogueId,
 						loggedInteractionIndex),
-				version, accessToken, response, delegateUser, application, AuthenticationInfo.USER_ROLE_PARTICIPANT, AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, delegateUser, application, Permission.DIALOGUE_RUN);
 		} else {
 			return QueryRunner.runQuery(
 				(protocolVersion, authenticatedUser) -> doBackDialogue(delegateUser, loggedDialogueId,
 						loggedInteractionIndex),
-				version, accessToken, response, delegateUser, application, AuthenticationInfo.USER_ROLE_PARTICIPANT, AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, delegateUser, application, Permission.DIALOGUE_RUN);
 		}
 	}
 
@@ -890,17 +875,14 @@ public class DialogueController {
 				+ delegateUser;
 		logger.info(logInfo);
 
-		// Extract the access token, and throw an exception if it is not provided correctly
-		String accessToken = ControllerFunctions.extractAccessToken(request);
-
 		if(delegateUser == null || delegateUser.isEmpty()) {
 			return QueryRunner.runQuery(
 					(protocolVersion, authenticatedUser) -> doGetOngoingDialogue(authenticatedUser, projectSlug, timeZone),
-					version, accessToken, response, delegateUser, application, AuthenticationInfo.USER_ROLE_PARTICIPANT, AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+					version, response, delegateUser, application, Permission.DIALOGUE_RUN);
 		} else {
 			return QueryRunner.runQuery(
 					(protocolVersion, authenticatedUser) -> doGetOngoingDialogue(delegateUser, projectSlug, timeZone),
-					version, accessToken, response, delegateUser, application, AuthenticationInfo.USER_ROLE_PARTICIPANT, AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+					version, response, delegateUser, application, Permission.DIALOGUE_RUN);
 		}
 	}
 
@@ -990,7 +972,7 @@ public class DialogueController {
 		@Parameter(description = "Name of the project to list dialogues for")
 		@RequestParam(value="projectSlug")
 		String projectSlug
-	) throws UnauthorizedException {
+	) throws HttpException {
 
 		if (version == null || version.isEmpty()) {
 			version = ProtocolVersion.getLatestVersion().versionName();
@@ -999,15 +981,9 @@ public class DialogueController {
 		String logInfo = "GET /v" + version + "/dialogue/list-dialogues?projectSlug=" + projectSlug;
 		logger.info(logInfo);
 
-		AuthenticationInfo authenticationInfo = QueryRunner.validateAccessToken(
-				ControllerFunctions.extractAccessToken(request), application);
-		if (authenticationInfo.hasRole(AuthenticationInfo.USER_ROLE_EDITOR)
-				|| authenticationInfo.hasRole(AuthenticationInfo.USER_ROLE_ADMIN)) {
-			return doListDialogues(projectSlug);
-		} else {
-			throw new UnauthorizedException(ErrorCode.INSUFFICIENT_PRIVILEGES,
-				"This user does not have the rights to access this function.");
-		}
+		return QueryRunner.runQuery(
+				(protocolVersion, user) -> doListDialogues(projectSlug),
+				version, response, "", application, Permission.DIALOGUE_LIST);
 	}
 
 	private DialogueListPayload doListDialogues(String projectSlug) {

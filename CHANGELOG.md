@@ -9,11 +9,18 @@ and this project adheres to a single monorepo-wide version declared in `global.j
 
 ### Added
 
-- Internal foundation for permission-based access control ([#28](https://github.com/dialoguebranch/platform/issues/28)):
+- Permission-based access control for the Web Service ([#28](https://github.com/dialoguebranch/platform/issues/28)):
   a `Permission` catalogue, a `Role` → permission mapping (`participant` ⊂ `editor` ⊂ `admin`),
-  and an `AuthorizationService` that throws `403 INSUFFICIENT_PRIVILEGES` when a user lacks a
-  required permission. Not yet enforced on any end-point — wiring the controllers onto permissions
-  is [#58](https://github.com/dialoguebranch/platform/issues/58).
+  and an `AuthorizationService` that decides whether a caller may perform an operation.
+
+### Changed
+
+- Endpoint authorization is now expressed as one required `Permission` per end-point (resolved
+  from the caller's roles via the central role→permission map) instead of an inline list of
+  accepted roles ([#58](https://github.com/dialoguebranch/platform/issues/58)). Which roles may
+  call each end-point is unchanged, but an authenticated caller who lacks the required permission
+  now gets **`403 Forbidden`** (previously `401 Unauthorized`), still with error code
+  `INSUFFICIENT_PRIVILEGES`; a missing, expired, or invalid token remains `401`.
 
 ## [2.0.8] - 2026-09-01
 

@@ -73,4 +73,24 @@ class RbacIntegrationTest {
 		mockMvc.perform(get("/v1/info/technical"))
 				.andExpect(status().isUnauthorized());
 	}
+
+	// A second end-point at a different tier (editor), to confirm the permission gate is wired
+	// across the migration and fires before the handler body runs.
+
+	@Test
+	void authoringListDialoguesIsForbiddenForAParticipant() throws Exception {
+		mockMvc.perform(withRoles(get("/v1/authoring/list-dialogues").param("projectSlug", "nope"),
+						"participant"))
+				.andExpect(status().isForbidden())
+				.andExpect(jsonPath("$.code").value("INSUFFICIENT_PRIVILEGES"));
+	}
+
+	@Test
+	void authoringListDialoguesPassesTheGateForAnEditor() throws Exception {
+		// Editor clears DIALOGUE_LIST, so the request reaches the handler; the unknown project
+		// then yields 404 rather than an authorization failure.
+		mockMvc.perform(withRoles(get("/v1/authoring/list-dialogues").param("projectSlug", "nope"),
+						"editor"))
+				.andExpect(status().isNotFound());
+	}
 }
