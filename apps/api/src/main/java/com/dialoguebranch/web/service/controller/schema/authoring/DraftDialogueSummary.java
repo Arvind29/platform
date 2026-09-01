@@ -64,6 +64,8 @@ public class DraftDialogueSummary {
 	}
 
 	/**
+	 * Returns the logical name of the draft dialogue.
+	 *
 	 * @return the logical name of the draft dialogue.
 	 */
 	public String getName() {
@@ -71,6 +73,8 @@ public class DraftDialogueSummary {
 	}
 
 	/**
+	 * Returns the instant at which this draft dialogue was last modified.
+	 *
 	 * @return the ISO-8601 instant at which this draft dialogue was last modified, or {@code
 	 * null} if it has no recorded update time.
 	 */
@@ -79,6 +83,8 @@ public class DraftDialogueSummary {
 	}
 
 	/**
+	 * Returns the number of nodes in this draft dialogue.
+	 *
 	 * @return the number of nodes in this draft dialogue.
 	 */
 	public int getNodeCount() {
@@ -86,6 +92,8 @@ public class DraftDialogueSummary {
 	}
 
 	/**
+	 * Returns whether this dialogue has no published counterpart yet.
+	 *
 	 * @return whether this dialogue has no published counterpart yet.
 	 */
 	public boolean getIsNew() {
@@ -93,6 +101,9 @@ public class DraftDialogueSummary {
 	}
 
 	/**
+	 * Returns whether this dialogue's draft content currently differs from its latest published
+	 * version.
+	 *
 	 * @return whether this dialogue's draft content currently differs from its latest published
 	 * version (or there is no published version at all).
 	 */
@@ -101,6 +112,8 @@ public class DraftDialogueSummary {
 	}
 
 	/**
+	 * Returns whether this dialogue is pending deletion.
+	 *
 	 * @return whether this dialogue is pending deletion.
 	 */
 	public boolean getIsDeleted() {
@@ -108,6 +121,9 @@ public class DraftDialogueSummary {
 	}
 
 	/**
+	 * Returns the published name this dialogue is still known by, if it has been renamed since it
+	 * was last published.
+	 *
 	 * @return the published name this dialogue is still known by, if it has been renamed since it
 	 * was last published, or {@code null} otherwise.
 	 */

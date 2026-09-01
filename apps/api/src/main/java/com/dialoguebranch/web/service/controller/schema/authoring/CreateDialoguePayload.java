@@ -34,14 +34,22 @@ package com.dialoguebranch.web.service.controller.schema.authoring;
  * @author Harm op den Akker
  */
 public class CreateDialoguePayload {
+
+	/** Creates a new, empty {@link CreateDialoguePayload}. */
+	public CreateDialoguePayload() { }
+
 	private String name;
 
 	/**
+	 * Returns the name of the draft dialogue to create.
+	 *
 	 * @return the name of the draft dialogue to create.
 	 */
 	public String getName() { return name; }
 
 	/**
+	 * Sets the name of the draft dialogue to create.
+	 *
 	 * @param name the name of the draft dialogue to create.
 	 */
 	public void setName(String name) { this.name = name; }

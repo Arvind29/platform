@@ -66,6 +66,7 @@ public class OngoingDialoguePayload {
 	 * Creates an instance of a {@link OngoingDialoguePayload} object with a given
 	 * {@code dialogueName} and {@code secondsSinceLastEngagement}.
 	 * @param dialogueName the name of the dialogue.
+	 * @param loggedDialogueId the ID of the logged dialogue.
 	 * @param secondsSinceLastEngagement the number of seconds since the user last engaged with this
 	 *                                   dialogue.
 	 */

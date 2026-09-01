@@ -125,6 +125,7 @@ public class DialogueController {
 	 * @param response the HTTP response (to add header WWW-Authenticate in case of a 401
 	 *                 Unauthorized error).
 	 * @param version The API Version to use, e.g. '1'.
+	 * @param projectSlug Name of the project that contains the dialogue to start
 	 * @param dialogueName Name of the Dialogue Branch Dialogue to start (excluding .dlb)
 	 * @param language Language code of the language in which to start the dialogue (e.g. 'en')
 	 * @param timeZone The current time zone of the user (as IANA, e.g. 'Europe/Lisbon')
@@ -441,6 +442,7 @@ public class DialogueController {
 	 * @param response the HTTP response (to add header WWW-Authenticate in case of a 401
 	 *                 Unauthorized error).
 	 * @param version The API Version to use, e.g. '1'.
+	 * @param projectSlug Name of the project that contains the dialogue to continue
 	 * @param dialogueName Name of the Dialogue Branch Dialogue to continue (excluding .dlb)
 	 * @param timeZone The current time zone of the user (as IANA, e.g. 'Europe/Lisbon')
 	 * @param delegateUser The user for which to continue executing the dialogue (leave empty if
@@ -823,6 +825,7 @@ public class DialogueController {
 	 * @param response the HTTP response (to add header WWW-Authenticate in case of a 401
 	 *                 Unauthorized error).
 	 * @param version The API Version to use, e.g. '1'.
+	 * @param projectSlug Name of the project to retrieve the latest ongoing dialogue for
 	 * @param timeZone The current time zone of the user (as IANA, e.g. 'Europe/Lisbon')
 	 * @param delegateUser The user for which to retrieve the latest ongoing dialogue information
 	 *                     (leave empty if retrieving for the currently authenticated user)
@@ -951,6 +954,7 @@ public class DialogueController {
 	 * @param response the HTTP response (to add header WWW-Authenticate in case of a 401
 	 *                 Unauthorized error).
 	 * @param version The API Version to use, e.g. '1'.
+	 * @param projectSlug Name of the project to list dialogues for.
 	 * @return a {@link DialogueListPayload} object containing a list of all available dialogues
 	 *         in the Web Service.
 	 * @throws UnauthorizedException in case the logged-in user does not have the 'editor' or

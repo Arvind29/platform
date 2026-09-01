@@ -34,25 +34,37 @@ package com.dialoguebranch.web.service.controller.schema.authoring;
  * @author Harm op den Akker
  */
 public class UpdateProjectPayload {
+
+	/** Creates a new, empty {@link UpdateProjectPayload}. */
+	public UpdateProjectPayload() { }
+
 	private String displayName;
 	private String description;
 
 	/**
+	 * Returns the human-readable display name to update the project with.
+	 *
 	 * @return the human-readable display name to update the project with.
 	 */
 	public String getDisplayName() { return displayName; }
 
 	/**
+	 * Sets the human-readable display name to update the project with.
+	 *
 	 * @param displayName the human-readable display name to update the project with.
 	 */
 	public void setDisplayName(String displayName) { this.displayName = displayName; }
 
 	/**
+	 * Returns the description to update the project with.
+	 *
 	 * @return the description to update the project with.
 	 */
 	public String getDescription() { return description; }
 
 	/**
+	 * Sets the description to update the project with.
+	 *
 	 * @param description the description to update the project with.
 	 */
 	public void setDescription(String description) { this.description = description; }

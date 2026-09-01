@@ -86,6 +86,7 @@ public class DialogueExecutor {
 	 * @param nodeId the node ID or {@code null}.
 	 * @param sessionId the unique session identifier to be added to the logs.
 	 * @param sessionStartTime the utc timestamp of when this session was started.
+	 * @param projectSlug the unique slug of the project the dialogue belongs to.
 	 * @return the start node or specified node.
 	 * @throws DatabaseException if a database error occurs.
 	 * @throws IOException if a communication error occurs.

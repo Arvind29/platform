@@ -55,6 +55,8 @@ public class TranslatableTermSummary {
 	}
 
 	/**
+	 * Returns the name of the speaker this term belongs to.
+	 *
 	 * @return the name of the speaker this term belongs to, or {@code "_user"} for the end-user.
 	 */
 	public String getSpeaker() {
@@ -62,6 +64,8 @@ public class TranslatableTermSummary {
 	}
 
 	/**
+	 * Returns the whitespace-normalized source-language text of the term.
+	 *
 	 * @return the whitespace-normalized source-language text of the term (see {@code
 	 *         Translatable.toNormalizedString()} in {@code packages/core}).
 	 */

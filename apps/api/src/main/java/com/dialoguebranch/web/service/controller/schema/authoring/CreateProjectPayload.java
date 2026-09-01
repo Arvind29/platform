@@ -34,6 +34,10 @@ package com.dialoguebranch.web.service.controller.schema.authoring;
  * @author Harm op den Akker
  */
 public class CreateProjectPayload {
+
+	/** Creates a new, empty {@link CreateProjectPayload}. */
+	public CreateProjectPayload() { }
+
 	private String slug;
 	private String displayName;
 	private String description;
@@ -41,52 +45,72 @@ public class CreateProjectPayload {
 	private String sourceLanguageName;
 
 	/**
+	 * Returns the unique slug identifying the project to create.
+	 *
 	 * @return the unique slug identifying the project to create.
 	 */
 	public String getSlug() { return slug; }
 
 	/**
+	 * Sets the unique slug identifying the project to create.
+	 *
 	 * @param slug the unique slug identifying the project to create.
 	 */
 	public void setSlug(String slug) { this.slug = slug; }
 
 	/**
+	 * Returns the human-readable display name of the project to create.
+	 *
 	 * @return the human-readable display name of the project to create.
 	 */
 	public String getDisplayName() { return displayName; }
 
 	/**
+	 * Sets the human-readable display name of the project to create.
+	 *
 	 * @param displayName the human-readable display name of the project to create.
 	 */
 	public void setDisplayName(String displayName) { this.displayName = displayName; }
 
 	/**
+	 * Returns the description of the project to create.
+	 *
 	 * @return the description of the project to create.
 	 */
 	public String getDescription() { return description; }
 
 	/**
+	 * Sets the description of the project to create.
+	 *
 	 * @param description the description of the project to create.
 	 */
 	public void setDescription(String description) { this.description = description; }
 
 	/**
+	 * Returns the language code (e.g. {@code "en"}) of the project's source language.
+	 *
 	 * @return the language code (e.g. {@code "en"}) of the project's source language.
 	 */
 	public String getSourceLanguageCode() { return sourceLanguageCode; }
 
 	/**
+	 * Sets the language code (e.g. {@code "en"}) of the project's source language.
+	 *
 	 * @param sourceLanguageCode the language code (e.g. {@code "en"}) of the project's source
 	 *                           language.
 	 */
 	public void setSourceLanguageCode(String sourceLanguageCode) { this.sourceLanguageCode = sourceLanguageCode; }
 
 	/**
+	 * Returns the human-readable name of the project's source language.
+	 *
 	 * @return the human-readable name of the project's source language.
 	 */
 	public String getSourceLanguageName() { return sourceLanguageName; }
 
 	/**
+	 * Sets the human-readable name of the project's source language.
+	 *
 	 * @param sourceLanguageName the human-readable name of the project's source language.
 	 */
 	public void setSourceLanguageName(String sourceLanguageName) { this.sourceLanguageName = sourceLanguageName; }

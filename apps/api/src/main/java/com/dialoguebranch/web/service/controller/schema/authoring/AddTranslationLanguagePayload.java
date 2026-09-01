@@ -34,25 +34,37 @@ package com.dialoguebranch.web.service.controller.schema.authoring;
  * @author Harm op den Akker
  */
 public class AddTranslationLanguagePayload {
+
+	/** Creates a new, empty {@link AddTranslationLanguagePayload}. */
+	public AddTranslationLanguagePayload() { }
+
 	private String translationLanguageName;
 	private String translationLanguageCode;
 
 	/**
+	 * Returns the human-readable name of the translation language to add.
+	 *
 	 * @return the human-readable name of the translation language to add.
 	 */
 	public String getTranslationLanguageName() { return translationLanguageName; }
 
 	/**
+	 * Sets the human-readable name of the translation language to add.
+	 *
 	 * @param translationLanguageName the human-readable name of the translation language to add.
 	 */
 	public void setTranslationLanguageName(String translationLanguageName) { this.translationLanguageName = translationLanguageName; }
 
 	/**
+	 * Returns the language code (e.g. {@code "en"}) of the translation language to add.
+	 *
 	 * @return the language code (e.g. {@code "en"}) of the translation language to add.
 	 */
 	public String getTranslationLanguageCode() { return translationLanguageCode; }
 
 	/**
+	 * Sets the language code (e.g. {@code "en"}) of the translation language to add.
+	 *
 	 * @param translationLanguageCode the language code (e.g. {@code "en"}) of the translation
 	 *                                 language to add.
 	 */

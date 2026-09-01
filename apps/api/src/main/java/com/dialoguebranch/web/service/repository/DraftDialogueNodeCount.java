@@ -36,10 +36,18 @@ import java.util.UUID;
  */
 public interface DraftDialogueNodeCount {
 
-	/** @return the id of the draft dialogue. */
+	/**
+	 * Returns the id of the draft dialogue.
+	 *
+	 * @return the id of the draft dialogue.
+	 */
 	UUID getDialogueId();
 
-	/** @return the number of nodes the draft dialogue contains. */
+	/**
+	 * Returns the number of nodes the draft dialogue contains.
+	 *
+	 * @return the number of nodes the draft dialogue contains.
+	 */
 	long getNodeCount();
 
 }

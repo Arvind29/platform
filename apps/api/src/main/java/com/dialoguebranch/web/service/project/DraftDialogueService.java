@@ -830,17 +830,29 @@ public class DraftDialogueService {
 			this.snippet = snippet;
 		}
 
-		/** The name of the dialogue containing the referencing node. */
+		/**
+		 * Returns the name of the dialogue containing the referencing node.
+		 *
+		 * @return the name of the dialogue containing the referencing node.
+		 */
 		public String getDialogueName() {
 			return dialogueName;
 		}
 
-		/** The title of the node that contains the reference. */
+		/**
+		 * Returns the title of the node that contains the reference.
+		 *
+		 * @return the title of the node that contains the reference.
+		 */
 		public String getNodeTitle() {
 			return nodeTitle;
 		}
 
-		/** The raw {@code [[...]]} text of the referencing reply. */
+		/**
+		 * Returns the raw {@code [[...]]} text of the referencing reply.
+		 *
+		 * @return the raw {@code [[...]]} text of the referencing reply.
+		 */
 		public String getSnippet() {
 			return snippet;
 		}
@@ -868,15 +880,22 @@ public class DraftDialogueService {
 			this.referencesUpdated = referencesUpdated;
 		}
 
-		/** The renamed node. */
+		/**
+		 * Returns the renamed node.
+		 *
+		 * @return the renamed node.
+		 */
 		public DBDraftNode getNode() {
 			return node;
 		}
 
 		/**
-		 * How many individual reply links elsewhere in the project were rewritten (0 if not
-		 * requested) — one referencing node can contribute more than one, matching the count
-		 * {@link #findNodeReferences(DBProject, String, String)} would report for it.
+		 * Returns how many individual reply links elsewhere in the project were rewritten.
+		 *
+		 * @return how many individual reply links elsewhere in the project were rewritten (0 if
+		 *         not requested) — one referencing node can contribute more than one, matching
+		 *         the count {@link #findNodeReferences(DBProject, String, String)} would report
+		 *         for it.
 		 */
 		public int getReferencesUpdated() {
 			return referencesUpdated;
@@ -904,15 +923,22 @@ public class DraftDialogueService {
 			this.referencesUpdated = referencesUpdated;
 		}
 
-		/** The renamed dialogue. */
+		/**
+		 * Returns the renamed dialogue.
+		 *
+		 * @return the renamed dialogue.
+		 */
 		public DBDraftDialogue getDialogue() {
 			return dialogue;
 		}
 
 		/**
-		 * How many individual reply links elsewhere in the project were rewritten (0 if not
-		 * requested) — one referencing node can contribute more than one, matching the count
-		 * {@link #findDialogueReferences(DBProject, String)} would report for it.
+		 * Returns how many individual reply links elsewhere in the project were rewritten.
+		 *
+		 * @return how many individual reply links elsewhere in the project were rewritten (0 if
+		 *         not requested) — one referencing node can contribute more than one, matching
+		 *         the count {@link #findDialogueReferences(DBProject, String)} would report for
+		 *         it.
 		 */
 		public int getReferencesUpdated() {
 			return referencesUpdated;

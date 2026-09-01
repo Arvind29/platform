@@ -34,14 +34,22 @@ package com.dialoguebranch.web.service.controller.schema.authoring;
  * @author Harm op den Akker
  */
 public class UpdateTranslationPayload {
+
+	/** Creates a new, empty {@link UpdateTranslationPayload}. */
+	public UpdateTranslationPayload() { }
+
 	private String content;
 
 	/**
+	 * Returns the translated content of the draft translation.
+	 *
 	 * @return the translated content of the draft translation.
 	 */
 	public String getContent() { return content; }
 
 	/**
+	 * Sets the translated content of the draft translation.
+	 *
 	 * @param content the translated content of the draft translation.
 	 */
 	public void setContent(String content) { this.content = content; }

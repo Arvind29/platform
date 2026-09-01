@@ -76,8 +76,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * used by {@code /dialogue/*}.</p>
  *
  * <p>A draft test session reads and writes the user's real {@link VariableStore}. A snapshot is
- * taken when the session starts so that {@link #revertVariables(DraftTestSession)} can restore
- * exactly the values that existed beforehand.</p>
+ * taken when the session starts so that {@link #revertVariables(DraftTestSession, UserService)}
+ * can restore exactly the values that existed beforehand.</p>
  *
  * @author Harm op den Akker
  */

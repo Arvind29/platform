@@ -34,37 +34,53 @@ package com.dialoguebranch.web.service.controller.schema.authoring;
  * @author Harm op den Akker
  */
 public class CreateNodePayload {
+
+	/** Creates a new, empty {@link CreateNodePayload}. */
+	public CreateNodePayload() { }
+
 	private String title;
 	private String header;
 	private String body;
 
 	/**
+	 * Returns the title of the draft node to create.
+	 *
 	 * @return the title of the draft node to create.
 	 */
 	public String getTitle() { return title; }
 
 	/**
+	 * Sets the title of the draft node to create.
+	 *
 	 * @param title the title of the draft node to create.
 	 */
 	public void setTitle(String title) { this.title = title; }
 
 	/**
+	 * Returns the raw header text of the draft node to create.
+	 *
 	 * @return the raw header text (the {@code key: value} block above the {@code ---} separator)
 	 * of the draft node to create.
 	 */
 	public String getHeader() { return header; }
 
 	/**
+	 * Sets the raw header text of the draft node to create.
+	 *
 	 * @param header the raw header text of the draft node to create.
 	 */
 	public void setHeader(String header) { this.header = header; }
 
 	/**
+	 * Returns the raw body text of the draft node to create.
+	 *
 	 * @return the raw body text of the draft node to create.
 	 */
 	public String getBody() { return body; }
 
 	/**
+	 * Sets the raw body text of the draft node to create.
+	 *
 	 * @param body the raw body text of the draft node to create.
 	 */
 	public void setBody(String body) { this.body = body; }

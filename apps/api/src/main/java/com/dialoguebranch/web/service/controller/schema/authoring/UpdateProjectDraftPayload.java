@@ -41,6 +41,10 @@ import java.util.UUID;
  * @author Harm op den Akker
  */
 public class UpdateProjectDraftPayload {
+
+	/** Creates a new, empty {@link UpdateProjectDraftPayload}. */
+	public UpdateProjectDraftPayload() { }
+
 	private String displayName;
 	private String description;
 	private List<UUID> removeLanguageIds;
@@ -48,52 +52,72 @@ public class UpdateProjectDraftPayload {
 	private List<UpdateDraftLanguagePayload> updateLanguages;
 
 	/**
+	 * Returns the new draft display name for the project.
+	 *
 	 * @return the new draft display name for the project.
 	 */
 	public String getDisplayName() { return displayName; }
 
 	/**
+	 * Sets the new draft display name for the project.
+	 *
 	 * @param displayName the new draft display name for the project.
 	 */
 	public void setDisplayName(String displayName) { this.displayName = displayName; }
 
 	/**
+	 * Returns the new draft description for the project.
+	 *
 	 * @return the new draft description for the project.
 	 */
 	public String getDescription() { return description; }
 
 	/**
+	 * Sets the new draft description for the project.
+	 *
 	 * @param description the new draft description for the project.
 	 */
 	public void setDescription(String description) { this.description = description; }
 
 	/**
+	 * Returns the ids of existing draft translation languages to mark pending deletion.
+	 *
 	 * @return the ids of existing draft translation languages to mark pending deletion.
 	 */
 	public List<UUID> getRemoveLanguageIds() { return removeLanguageIds; }
 
 	/**
+	 * Sets the ids of existing draft translation languages to mark pending deletion.
+	 *
 	 * @param removeLanguageIds the ids of existing draft translation languages to mark pending
 	 *                          deletion.
 	 */
 	public void setRemoveLanguageIds(List<UUID> removeLanguageIds) { this.removeLanguageIds = removeLanguageIds; }
 
 	/**
+	 * Returns the new draft translation languages to add.
+	 *
 	 * @return the new draft translation languages to add.
 	 */
 	public List<AddTranslationLanguagePayload> getAddLanguages() { return addLanguages; }
 
 	/**
+	 * Sets the new draft translation languages to add.
+	 *
 	 * @param addLanguages the new draft translation languages to add.
 	 */
 	public void setAddLanguages(List<AddTranslationLanguagePayload> addLanguages) { this.addLanguages = addLanguages; }
 
 	/**
+	 * Returns the existing draft translation languages to rename (name and/or code).
+	 *
 	 * @return the existing draft translation languages to rename (name and/or code).
 	 */
 	public List<UpdateDraftLanguagePayload> getUpdateLanguages() { return updateLanguages; }
 
 	/**
+	 * Sets the existing draft translation languages to rename (name and/or code).
+	 *
 	 * @param updateLanguages the existing draft translation languages to rename (name and/or
 	 *                        code).
 	 */

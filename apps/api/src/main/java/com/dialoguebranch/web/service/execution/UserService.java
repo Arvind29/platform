@@ -232,6 +232,7 @@ public class UserService {
 	 *
 	 * <p>You can specify an ISO language tag such as "en-US" or "en".</p>
 	 *
+	 * @param projectSlug the unique slug of the project the dialogue belongs to.
 	 * @param dialogueId the dialogue ID
 	 * @param nodeId a node ID or null
 	 * @param language an ISO language tag

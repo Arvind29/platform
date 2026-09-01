@@ -34,26 +34,38 @@ package com.dialoguebranch.web.service.controller.schema.authoring;
  * @author Harm op den Akker
  */
 public class UpdateNodePayload {
+
+	/** Creates a new, empty {@link UpdateNodePayload}. */
+	public UpdateNodePayload() { }
+
 	private String header;
 	private String body;
 
 	/**
+	 * Returns the raw header text to update the draft node with.
+	 *
 	 * @return the raw header text (the {@code key: value} block above the {@code ---} separator)
 	 * to update the draft node with.
 	 */
 	public String getHeader() { return header; }
 
 	/**
+	 * Sets the raw header text to update the draft node with.
+	 *
 	 * @param header the raw header text to update the draft node with.
 	 */
 	public void setHeader(String header) { this.header = header; }
 
 	/**
+	 * Returns the raw body text to update the draft node with.
+	 *
 	 * @return the raw body text to update the draft node with.
 	 */
 	public String getBody() { return body; }
 
 	/**
+	 * Sets the raw body text to update the draft node with.
+	 *
 	 * @param body the raw body text to update the draft node with.
 	 */
 	public void setBody(String body) { this.body = body; }

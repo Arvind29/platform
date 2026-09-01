@@ -37,36 +37,52 @@ import java.util.UUID;
  * @author Harm op den Akker
  */
 public class UpdateDraftLanguagePayload {
+
+	/** Creates a new, empty {@link UpdateDraftLanguagePayload}. */
+	public UpdateDraftLanguagePayload() { }
+
 	private UUID id;
 	private String translationLanguageName;
 	private String translationLanguageCode;
 
 	/**
+	 * Returns the id of the draft translation language to update.
+	 *
 	 * @return the id of the draft translation language to update.
 	 */
 	public UUID getId() { return id; }
 
 	/**
+	 * Sets the id of the draft translation language to update.
+	 *
 	 * @param id the id of the draft translation language to update.
 	 */
 	public void setId(UUID id) { this.id = id; }
 
 	/**
+	 * Returns the new human-readable name for the translation language.
+	 *
 	 * @return the new human-readable name for the translation language.
 	 */
 	public String getTranslationLanguageName() { return translationLanguageName; }
 
 	/**
+	 * Sets the new human-readable name for the translation language.
+	 *
 	 * @param translationLanguageName the new human-readable name for the translation language.
 	 */
 	public void setTranslationLanguageName(String translationLanguageName) { this.translationLanguageName = translationLanguageName; }
 
 	/**
+	 * Returns the new language code (e.g. {@code "en"}) for the translation language.
+	 *
 	 * @return the new language code (e.g. {@code "en"}) for the translation language.
 	 */
 	public String getTranslationLanguageCode() { return translationLanguageCode; }
 
 	/**
+	 * Sets the new language code (e.g. {@code "en"}) for the translation language.
+	 *
 	 * @param translationLanguageCode the new language code (e.g. {@code "en"}) for the
 	 *                                 translation language.
 	 */
