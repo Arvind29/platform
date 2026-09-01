@@ -7,6 +7,8 @@ and this project adheres to a single monorepo-wide version declared in `global.j
 
 ## [Unreleased]
 
+## [2.0.8] - 2026-09-01
+
 ### Changed
 
 - Dialogue Browser entries (folders and dialogues alike) now render as grey row blocks, matching
