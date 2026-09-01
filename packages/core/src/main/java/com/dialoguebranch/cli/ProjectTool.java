@@ -30,7 +30,6 @@ package com.dialoguebranch.cli;
 
 import com.dialoguebranch.exception.ExecutionException;
 import com.dialoguebranch.exception.InvalidInputException;
-import com.dialoguebranch.exception.ScriptParseException;
 import com.dialoguebranch.execution.ActiveDialogue;
 import com.dialoguebranch.execution.User;
 import com.dialoguebranch.execution.VariableStore;
@@ -47,16 +46,7 @@ import com.dialoguebranch.model.execute.ResourcePointer;
 import com.dialoguebranch.model.execute.nodepointer.ExternalNodePointer;
 import com.dialoguebranch.model.execute.nodepointer.InternalNodePointer;
 import com.dialoguebranch.model.execute.nodepointer.NodePointer;
-import com.dialoguebranch.model.execute.Language;
 import com.dialoguebranch.model.common.ProjectMetaData;
-import com.dialoguebranch.model.common.ResourceType;
-import com.dialoguebranch.model.edit.EditableProject;
-import com.dialoguebranch.model.edit.EditableScript;
-import com.dialoguebranch.model.common.FileStorageSource;
-import com.dialoguebranch.model.common.ScriptTreeNode;
-import com.dialoguebranch.model.common.StorageSource;
-import com.dialoguebranch.editing.parser.EditableProjectParser;
-import com.dialoguebranch.editing.parser.EditableScriptParser;
 import nl.rrd.utils.exception.ParseException;
 import nl.rrd.utils.expressions.EvaluationException;
 
@@ -64,7 +54,6 @@ import java.io.File;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -440,14 +429,23 @@ public class ProjectTool {
             }
         }
 
-        EditableProject project;
+        ProjectParserResult result;
         try {
-            project = EditableProjectParser.read(projectFile);
+            ProjectScriptLoader scriptLoader = new ProjectScriptLoader(projectFile);
+            ProjectParser parser = new ProjectParser(scriptLoader);
+            result = parser.parse();
         } catch (IOException | ParseException e) {
             System.err.println("Failed to load project: " + e.getMessage() + "\n");
             return;
         }
+        if (!result.getParseErrors().isEmpty()) {
+            System.err.println("Project contains parse errors:");
+            result.getParseErrors().forEach((file, errors) ->
+                    errors.forEach(e -> System.err.println("  [" + file + "] " + e.getMessage())));
+            return;
+        }
 
+        ExecutableProject project = result.getProject();
         ProjectMetaData meta = project.getMetaData();
         System.out.println("\nLoaded project: " + meta.getName() + " (v" + meta.getVersion() + ")\n");
 
@@ -456,7 +454,7 @@ public class ProjectTool {
             printProjectMenu(meta.getName());
             String choice = scanner.nextLine().trim();
             switch (choice) {
-                case "1" -> printProjectSummary(project);
+                case "1" -> System.out.println("\n" + result.generateSummaryString());
                 case "2" -> executeDialogue(scanner, projectFile);
                 case "0" -> {
                     System.out.println("Returning to main menu.\n");
@@ -475,130 +473,6 @@ public class ProjectTool {
               0. Back to main menu
             -------------------------------------------------------""");
         System.out.print("Choice: ");
-    }
-
-    // ---------------------------------------------------------- //
-    // -------------------- Project Summary -------------------- //
-    // ---------------------------------------------------------- //
-
-    /**
-     * Prints a comprehensive summary of the given {@link EditableProject}: project metadata,
-     * language mappings, and node counts per dialogue.
-     */
-    private static void printProjectSummary(EditableProject project) {
-        ProjectMetaData meta = project.getMetaData();
-
-        System.out.println();
-        System.out.println("============================================================");
-        System.out.println(" Project Summary");
-        System.out.println("============================================================");
-        System.out.println("  Name:        " + meta.getName());
-        System.out.println("  Version:     " + meta.getVersion());
-        System.out.println("  Description: " + meta.getDescription());
-        System.out.println("  Base Path:   " + meta.getBasePath());
-
-        // ---- Language Map ----
-        System.out.println();
-        System.out.println("  Language Mappings:");
-        Language source = meta.getLanguageMap() != null ? meta.getLanguageMap().getSourceLanguage() : null;
-        if (source == null) {
-            System.out.println("    (no source language defined)");
-        } else {
-            List<Language> translations = meta.getLanguageMap().getTranslationLanguages();
-
-            System.out.print("    [source] " + source.getName() + " (" + source.getCode() + ")");
-            if (translations.isEmpty()) {
-                System.out.println("  →  (no translations)");
-            } else {
-                System.out.println();
-                for (Language translation : translations) {
-                    System.out.println("        →  " + translation.getName()
-                            + " (" + translation.getCode() + ")");
-                }
-            }
-        }
-
-        // ---- Dialogues (source language) ----
-        System.out.println();
-        System.out.println("  Dialogues (source language):");
-
-        if (source == null) {
-            System.out.println("    (no source language — cannot determine dialogues)");
-        } else {
-            ScriptTreeNode sourceTree = project.getAvailableScriptsForLanguage(source);
-
-            System.out.println();
-            System.out.println("    Language: " + source.getName()
-                    + " (" + source.getCode() + ")");
-
-            if (sourceTree == null) {
-                System.out.println("      (no scripts found)");
-            } else {
-                Map<String, Integer> dialogueNodeCounts = new LinkedHashMap<>();
-                collectNodeCounts(sourceTree, "", dialogueNodeCounts);
-
-                if (dialogueNodeCounts.isEmpty()) {
-                    System.out.println("      (no scripts found)");
-                } else {
-                    int maxLen = dialogueNodeCounts.keySet().stream()
-                            .mapToInt(String::length).max().orElse(0);
-                    for (Map.Entry<String, Integer> entry : dialogueNodeCounts.entrySet()) {
-                        String pad = " ".repeat(maxLen - entry.getKey().length() + 2);
-                        System.out.println("      " + entry.getKey() + pad
-                                + entry.getValue() + " node"
-                                + (entry.getValue() == 1 ? "" : "s"));
-                    }
-                }
-            }
-        }
-
-        System.out.println();
-        System.out.println("============================================================");
-        System.out.println();
-    }
-
-    /**
-     * Recursively collects dialogue names and their node counts from the given
-     * {@link ScriptTreeNode} tree, populating the provided {@code result} map.
-     *
-     * @param node      the current node in the script tree
-     * @param pathPrefix the accumulated folder prefix for building relative dialogue names
-     * @param result    the map to populate with dialogue name → node count entries
-     */
-    private static void collectNodeCounts(ScriptTreeNode node, String pathPrefix,
-                                          Map<String, Integer> result) {
-        for (ScriptTreeNode child : node.getChildren()) {
-            if (child.getResourceType() == ResourceType.FOLDER) {
-                String folderPrefix = pathPrefix.isEmpty()
-                        ? child.getName()
-                        : pathPrefix + "/" + child.getName();
-                collectNodeCounts(child, folderPrefix, result);
-            } else if (child.getResourceType() == ResourceType.SCRIPT) {
-                String dialogueName = pathPrefix.isEmpty()
-                        ? child.getName()
-                        : pathPrefix + "/" + child.getName();
-                int nodeCount = countNodesInScript(child.getStorageSource());
-                result.put(dialogueName, nodeCount);
-            }
-        }
-    }
-
-    /**
-     * Parses the script at the given {@link StorageSource} and returns the number of nodes it
-     * contains. Returns {@code -1} if the script could not be parsed.
-     */
-    private static int countNodesInScript(StorageSource storageSource) {
-        if (!(storageSource instanceof FileStorageSource fileSource)) {
-            return -1;
-        }
-        try {
-            EditableScript script = EditableScriptParser.read(fileSource.getSourceFile(), null);
-            return script.getNodes().size();
-        } catch (IOException | ScriptParseException e) {
-            System.err.println("    Warning: could not parse script '"
-                    + fileSource.getDescriptor() + "': " + e.getMessage());
-            return -1;
-        }
     }
 
     // ------------------------------------------------------------------------------- //

@@ -46,8 +46,6 @@ import java.util.List;
  * <ul>
  *   <li>{@code ExecutableProject} — the fully parsed, runtime representation used for dialogue
  *   execution.</li>
- *   <li>{@code EditableProject} — the in-editor representation used for authoring and
- *   modification.</li>
  * </ul>
  *
  * @author Harm op den Akker

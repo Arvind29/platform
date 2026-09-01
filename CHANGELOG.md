@@ -7,6 +7,21 @@ and this project adheres to a single monorepo-wide version declared in `global.j
 
 ## [Unreleased]
 
+### Removed
+
+- **Breaking:** Removed the dead editable-model layer from `dlb-core-java`
+  ([#87](https://github.com/dialoguebranch/platform/issues/87)): the `com.dialoguebranch.model.edit`
+  package (`Editable`, `EditableBody`, `EditableHeader`, `EditableNode`, `EditableProject`,
+  `EditableScript`, `EditableTranslation`, `EditableTranslationSet`), the
+  `com.dialoguebranch.editing.parser` package (`EditableBodyParser`, `EditableHeaderParser`,
+  `EditableProjectParser`, `EditableScriptParser`, `EditableTranslationParser`),
+  `editing.writer.EditableScriptWriter` and `EditableTranslationWriter`, `editing.warning.ParserWarning`,
+  and `cli.CommandLineRunner`. This was the model layer for a Java-based dialogue-editing UI toolkit
+  that was never built and was never functionally complete; editing now happens in Dialogue Branch
+  Studio against the Web Service's own draft model. `editing.writer.ProjectMetaDataWriter` and
+  `cli.ProjectTool` (the module's actual CLI, now repointed onto the runtime model) are unaffected.
+  Targets the next **major** version.
+
 ### Added
 
 - Permission-based access control for the Web Service ([#28](https://github.com/dialoguebranch/platform/issues/28)):
