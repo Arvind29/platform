@@ -97,14 +97,13 @@ Service URLs:
 
 The `com.dialoguebranch` package is divided into:
 
-- **`model/common`** — Shared types (`ProjectMetaData`, `ScriptTreeNode`, `StorageSource`)
-- **`model/edit`** — Mutable editor model (`EditableProject`, `EditableScript`, `EditableNode`) — used by tooling, not the runtime
-- **`model/execute`** — Immutable runtime model (`Project`, `Dialogue`, `Node`, `NodeBody`, `Reply`, `VariableString`, `LoggedDialogue`, `DialogueState`) plus command types (`SetCommand`, `IfCommand`, `RandomCommand`, `ActionCommand`, `InputCommand` variants) and API protocol types (`DialogueMessage`, `DialogueStatement`, `ReplyMessage`)
+- **`model/common`** — Shared types (`ProjectMetaData`, `StorageSource`)
+- **`model/execute`** — Immutable runtime model (`ExecutableProject`, `Dialogue`, `Node`, `NodeBody`, `Reply`, `VariableString`, `LoggedDialogue`, `DialogueState`) plus command types (`SetCommand`, `IfCommand`, `RandomCommand`, `ActionCommand`, `InputCommand` variants) and API protocol types (`DialogueMessage`, `DialogueStatement`, `ReplyMessage`)
 - **`execution`** — Runtime engine: `ActiveDialogue` drives a live session, `VariableStore` holds session variables; `parser/` contains `DialogueBranchParser`, `BodyParser`, `CommandParser`, `ProjectParser`, etc.
-- **`editing`** — Parsers/writers for the edit model (`EditableScriptParser`, `EditableScriptWriter`, `EditableTranslationParser`, etc.)
+- **`editing`** — `ProjectMetaDataWriter`, used to export a project's metadata
 - **`i18n`** — Translation: `Translator` applies `.json` translation files to a `Dialogue`; `TranslatableExtractor` walks node bodies to extract translatable segments
-- **`exception`** — Typed exceptions (`ScriptParseException`, `ExecutionException`, `VariableException`, etc.)
-- **`cli`** — `ProjectTool` (default main class, interactive inspector) and `CommandLineRunner`
+- **`exception`** — Typed exceptions (`NodeParseException`, `ExecutionException`, etc.)
+- **`cli`** — `ProjectTool` (default main class, interactive inspector)
 
 The test `sourceSets` for core includes `../../examples` as a resource directory, so example `.dlb` files are available in tests.
 

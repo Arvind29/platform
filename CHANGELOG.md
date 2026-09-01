@@ -28,6 +28,16 @@ and this project adheres to a single monorepo-wide version declared in `global.j
   CLI made redundant by `cli.ProjectTool`; `DialogueBranchParser` itself is unaffected). Also removed
   `i18n.TranslationFile.writeToTSVFile()`, orphaned by #87's removal of its only caller. Targets the
   next **major** version, alongside #87.
+- **Breaking:** Removed further dead code from `dlb-core-java`, found in a follow-up scan after
+  #87/#94: `exception.ScriptParseException`, `exception.FileSystemException`, and
+  `exception.VariableException` (each used only by the deleted editable-model layer),
+  `model.common.ScriptTreeNode` (used only by the deleted editable-model layer and the CLI code
+  already repointed off it in #87), `i18n.TranslationTerm` (used only by the deleted
+  `POEditorTools`), and two pre-existing orphans unrelated to either prior removal:
+  `model.common.DatabaseStorageSource` (a `StorageSource` implementation never instantiated
+  anywhere — the Web Service's DB-backed draft storage uses its own separate entities instead) and
+  `model.execute.DialogueStatus` (an unused enum, never wired into `DialogueState`). Targets the
+  next **major** version, alongside #87/#94.
 
 ### Added
 

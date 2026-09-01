@@ -32,7 +32,6 @@ Types shared across the project model.
 | Class | Description |
 |---|---|
 | `ProjectMetaData` | Name, version, description, base path, and language map for a project. |
-| `ScriptTreeNode` | Node in a tree representing the folder/file hierarchy of scripts for one language. |
 | `StorageSource` / `FileStorageSource` | Abstraction over where a script or translation file is physically stored. |
 | `ResourceType` | Enum: `SCRIPT`, `TRANSLATION`, or `FOLDER`. |
 | `DialogueBranchConstants` | File extensions (`.dlb`, `.json`) and other shared constants. |
@@ -53,7 +52,7 @@ The fully parsed, immutable model used at runtime when executing dialogues.
 | `Language` / `LanguageSet` / `LanguageMap` | Language definitions and source-to-translation mappings as declared in `dlb-project.xml`. |
 | `FileDescriptor` | Identifies a dialogue by name and language code. |
 | `LoggedDialogue` / `LoggedInteraction` | Record types for persisting a user's dialogue session history. |
-| `DialogueState` / `DialogueStatus` | State tracking for a dialogue that is currently in progress. |
+| `DialogueState` | State tracking for a dialogue that is currently in progress. |
 | `command/` | `Command` subtypes: `SetCommand`, `IfCommand`, `RandomCommand`, `ActionCommand`, and the family of `InputCommand`s (`InputTextCommand`, `InputNumericCommand`, etc.). |
 | `nodepointer/` | `InternalNodePointer` (same script) and `ExternalNodePointer` (different script). |
 | `protocol/` | API-layer message types: `DialogueMessage`, `DialogueStatement`, `DialogueAction`, `ReplyMessage`. Used for serialising dialogue state to JSON for REST clients. |
@@ -96,7 +95,6 @@ Translation extraction, storage, and application.
 | `ContextTranslation` | A translated string bound to a specific `TranslationContext`. |
 | `TranslationFile` | In-memory representation of a `.json` translation file, with read/write support. |
 | `TranslationParser` / `TranslationParserResult` | Parses a `.json` translation file. |
-| `TranslationTerm` | A single source–translation pair within a translation file. |
 
 ---
 
@@ -107,12 +105,9 @@ Typed exceptions thrown throughout the library.
 | Class | Meaning |
 |---|---|
 | `DialogueBranchException` | Base class for all library exceptions. |
-| `ScriptParseException` | Thrown when a `.dlb` file cannot be parsed. |
 | `NodeParseException` | Thrown when an individual node within a script cannot be parsed. |
 | `InvalidInputException` | Thrown on invalid user or programmatic input. |
-| `FileSystemException` | Thrown on filesystem errors (e.g. unable to create a directory). |
 | `ExecutionException` | Thrown during dialogue execution (e.g. missing node). |
-| `VariableException` | Thrown on invalid variable operations. |
 | `DuplicateLanguageCodeException` | Thrown when adding a language code that already exists in the project. |
 | `UnknownLanguageCodeException` | Thrown when looking up a language code that does not exist. |
 
