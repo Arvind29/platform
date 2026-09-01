@@ -78,6 +78,13 @@ and this project adheres to a single monorepo-wide version declared in `global.j
   Import / New project) no longer name a specific role — they now read "You don't have permission
   to …", so they stay correct if the role a capability requires ever changes.
 
+### Fixed
+
+- Studio: the "Continue" button in the balloon test view (shown for auto-forward dialogue steps)
+  was near-invisible — a transparent fill with a border and text colour that matched the grey
+  page background. It now has a light fill, an orange border and dark text, so it reads clearly
+  for participants and editors alike ([#98](https://github.com/dialoguebranch/platform/issues/98)).
+
 ### Security
 
 - The Web Service now checks each token's `azp` (client) claim against
