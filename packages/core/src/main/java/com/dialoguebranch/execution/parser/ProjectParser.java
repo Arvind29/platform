@@ -44,6 +44,8 @@ import com.dialoguebranch.model.common.ResourceType;
 import com.dialoguebranch.model.common.ProjectMetaData;
 import com.dialoguebranch.model.execute.*;
 import com.dialoguebranch.model.execute.nodepointer.ExternalNodePointer;
+import com.dialoguebranch.model.execute.nodepointer.InternalNodePointer;
+import com.dialoguebranch.model.execute.nodepointer.NodePointer;
 import nl.rrd.utils.exception.ParseException;
 import nl.rrd.utils.i18n.I18nLanguageFinder;
 import com.dialoguebranch.i18n.ContextTranslation;
@@ -223,6 +225,13 @@ public class ProjectParser {
 			}
 		}
 
+		// Detecting orphaned nodes never affects parsing success or dialogue execution — a node
+		// that nothing points to can simply never be reached, which is not an error by design
+		// (a dialogue is not required to link every node it defines). It usually does indicate
+		// an authoring mistake though (a branch left disconnected while editing), so it is
+		// reported as a warning rather than a parse error.
+		detectOrphanedNodes(allParsedDialogues, dialoguesByName, readResult);
+
 		for (ResourcePointer fileDescription : translationFiles) {
 			if (fileDescriptionsSet.contains(fileDescription)) {
 				getParseErrors(readResult, fileDescription).add(new ParseException(
@@ -241,6 +250,67 @@ public class ProjectParser {
 			}
 			if (transParseResult.getParseErrors().isEmpty())
 				translations.put(fileDescription, transParseResult.getTranslations());
+		}
+	}
+
+	/**
+	 * Reports a warning for every {@link Node} that no reply link (internal or external) points
+	 * to and that is not its own {@link Dialogue}'s Start node. A Start node is always treated as
+	 * reachable in its own right, since it is a valid standalone entry point (e.g. via the Web
+	 * Service's {@code dialogue/start} end-point) regardless of whether anything within the
+	 * project links to it.
+	 *
+	 * <p>An external node pointer can target a node in a dialogue that has multiple
+	 * source-language variants (see {@code dialoguesByName}); such a pointer marks the target
+	 * node reachable in every variant, since the project parser has no way to know which variant
+	 * an external caller will actually address.</p>
+	 *
+	 * @param allParsedDialogues every dialogue that parsed at all, keyed by its source file.
+	 * @param dialoguesByName    every parsed dialogue, keyed by dialogue name.
+	 * @param readResult         the result to add warnings to.
+	 */
+	private void detectOrphanedNodes(Map<ResourcePointer, Dialogue> allParsedDialogues,
+									 Map<String, List<Dialogue>> dialoguesByName,
+									 ProjectParserResult readResult) {
+		Map<Dialogue, Set<String>> reachableNodeIds = new HashMap<>();
+
+		for (Dialogue dlg : allParsedDialogues.values()) {
+			Set<String> reachable = reachableNodeIds.computeIfAbsent(dlg, (d) -> new HashSet<>());
+			if (dlg.getStartNode() != null)
+				reachable.add(dlg.getStartNode().getTitle().toLowerCase());
+			for (Node node : dlg.getNodes()) {
+				for (NodePointer pointer : node.getBody().getNodePointers()) {
+					if (pointer instanceof InternalNodePointer)
+						reachable.add(pointer.getTargetNodeId().toLowerCase());
+				}
+			}
+		}
+
+		// External pointers can target nodes in OTHER dialogues, so fold those in across the
+		// whole project after the per-dialogue internal pass above.
+		for (Dialogue dlg : allParsedDialogues.values()) {
+			for (ExternalNodePointer pointer : dlg.getExternalNodePointers()) {
+				List<Dialogue> targetVariants =
+						dialoguesByName.get(pointer.getAbsoluteTargetDialogue());
+				if (targetVariants == null)
+					continue; // unknown target dialogue — already reported as a parse error
+				for (Dialogue targetDlg : targetVariants) {
+					reachableNodeIds.computeIfAbsent(targetDlg, (d) -> new HashSet<>())
+							.add(pointer.getTargetNodeId().toLowerCase());
+				}
+			}
+		}
+
+		for (Map.Entry<ResourcePointer, Dialogue> entry : allParsedDialogues.entrySet()) {
+			Dialogue dlg = entry.getValue();
+			Set<String> reachable = reachableNodeIds.getOrDefault(dlg, Set.of());
+			for (Node node : dlg.getNodes()) {
+				if (!reachable.contains(node.getTitle().toLowerCase())) {
+					getWarnings(readResult, entry.getKey()).add(String.format(
+							"Node \"%s\" is orphaned: no reply link points to it, and it is " +
+							"not this dialogue's Start node", node.getTitle()));
+				}
+			}
 		}
 	}
 

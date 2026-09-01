@@ -41,6 +41,11 @@ and this project adheres to a single monorepo-wide version declared in `global.j
 
 ### Added
 
+- Core: `ProjectParser` now detects orphaned nodes — a node that no reply link (internal or
+  external) points to, and that isn't its own dialogue's Start node ([#105](https://github.com/dialoguebranch/platform/issues/105)).
+  This can never cause a runtime error by design (a dialogue isn't required to link every node it
+  defines), so it's reported as a warning via the existing `ProjectParserResult.getWarnings()`,
+  already visible in `ProjectTool`'s project summary.
 - Permission-based access control for the Web Service ([#28](https://github.com/dialoguebranch/platform/issues/28)):
   a `Permission` catalogue, a `Role` → permission mapping (`participant` ⊂ `editor` ⊂ `admin`),
   and an `AuthorizationService` that decides whether a caller may perform an operation.
