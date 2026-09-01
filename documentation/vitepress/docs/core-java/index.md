@@ -24,6 +24,29 @@ The `com.dialoguebranch` package is organised as follows:
 
 For the exact syntax of the `.dlb` script format this library parses and executes, see the [Dialogue Branch Language Definition](/language/).
 
+## Command-Line Tool
+
+`cli.DialogueBranchCLI` (the module's default main class) can be run two ways:
+
+```bash
+# Interactive, menu-driven session (default with no arguments)
+./gradlew run -q --console=plain
+
+# Non-interactive: parse a project and print its summary, exiting non-zero on parse errors
+./gradlew run -q --console=plain --args="<path-to-dlb-project.xml> [--validate]"
+
+# Non-interactive: run a specific dialogue interactively on the terminal
+./gradlew run -q --console=plain --args="<path-to-dlb-project.xml> --execute <language> <dialogue>"
+
+# Full syntax
+./gradlew run -q --console=plain --args="--help"
+```
+
+The non-interactive validate mode is suited to CI. Alongside parse errors, it also reports
+**warnings** for issues that can never cause a runtime error but likely indicate an authoring
+mistake — such as an **orphaned node**: a node that no reply link points to and that isn't its
+own dialogue's Start node. Warnings are printed but do not affect the exit status.
+
 ## Documentation
 
 Javadoc for the library can be generated locally with `./gradlew javadoc` (output in `packages/core/build/reports/javadoc/`). Since the library is published to Maven Central, its Javadoc is also browsable via [javadoc.io](https://javadoc.io/doc/com.dialoguebranch/dlb-core-java) for any released version, without a local build.
