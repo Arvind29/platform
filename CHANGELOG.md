@@ -46,6 +46,13 @@ and this project adheres to a single monorepo-wide version declared in `global.j
   This can never cause a runtime error by design (a dialogue isn't required to link every node it
   defines), so it's reported as a warning via the existing `ProjectParserResult.getWarnings()`,
   already visible in `ProjectTool`'s project summary.
+- Core: `cli.ProjectTool` now supports non-interactive, scriptable invocation alongside its
+  existing interactive menu ([#105](https://github.com/dialoguebranch/platform/issues/105)):
+  `ProjectTool <path-to-dlb-project.xml> [--validate]` parses a project and prints its summary,
+  exiting non-zero on parse errors (warnings, such as orphaned nodes, do not affect the exit
+  status) — usable as a CI gate. `ProjectTool <path> --execute <language> <dialogue>` runs a
+  specific dialogue, reusing the same interactive terminal conversation as before. The
+  no-argument interactive session is unchanged and remains the default.
 - Permission-based access control for the Web Service ([#28](https://github.com/dialoguebranch/platform/issues/28)):
   a `Permission` catalogue, a `Role` → permission mapping (`participant` ⊂ `editor` ⊂ `admin`),
   and an `AuthorizationService` that decides whether a caller may perform an operation.

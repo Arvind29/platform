@@ -126,10 +126,14 @@ with the Gradle build script.
 Here is a list of common useful tasks:
 - `./gradlew clean` - Cleans all generated output build files (deletes the `/build/` folder).
 - `./gradlew build` - Compiles and builds everything.
-- `./gradlew run -q --console=plain` - Runs the library's main class (`ProjectTool`). The
-  `-q` flag tells Gradle to be "quiet", while `--console=plain` hides the
-  `<=========----> 75% EXECUTING` progress bar. Both flags are needed to properly run the
-  `ProjectTool`, which requires interactive command-line input.
+- `./gradlew run -q --console=plain` - Runs the library's main class (`ProjectTool`) in its
+  interactive, menu-driven mode. The `-q` flag tells Gradle to be "quiet", while
+  `--console=plain` hides the `<=========----> 75% EXECUTING` progress bar. Both flags are needed
+  for `ProjectTool`'s interactive command-line input to work properly.
+- `./gradlew run -q --console=plain --args="<path-to-dlb-project.xml> [--validate]"` - Runs
+  `ProjectTool` non-interactively instead: parses the project, prints its summary, and exits
+  non-zero on parse errors — usable as a CI gate. `--args="--help"` prints the full syntax,
+  including `--execute <language> <dialogue>` to run a specific dialogue.
 - `./gradlew test` - Runs all unit tests. You can run a single test class with
   `./gradlew test --tests "com.dialoguebranch.ClassName"`, or a single method with
   `./gradlew test --tests "com.dialoguebranch.ClassName.methodName"`. The HTML test report is

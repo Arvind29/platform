@@ -59,13 +59,29 @@ import java.util.Map;
 import java.util.Scanner;
 
 /**
- * The {@link ProjectTool} is an interactive command-line tool for inspecting and working with
- * Dialogue Branch projects. It presents a top-level menu, then a project-level sub-menu once a
- * {@code dlb-project.xml} file has been loaded.
+ * The {@link ProjectTool} is a command-line tool for inspecting and working with Dialogue Branch
+ * projects, in two modes:
+ * <ul>
+ *     <li>Run with no arguments for an interactive, menu-driven session: a top-level menu, then a
+ *     project-level sub-menu once a {@code dlb-project.xml} file has been loaded.</li>
+ *     <li>Run with a project file path (and optional flags) for a non-interactive, scriptable
+ *     invocation suited to CI — see {@link #printUsage()} for the exact syntax. Dialogue
+ *     execution, even when triggered this way, is still an interactive terminal conversation,
+ *     since stepping through a dialogue is inherently a back-and-forth.</li>
+ * </ul>
  *
  * @author Harm op den Akker
  */
 public class ProjectTool {
+
+    /** Process exit status: success. */
+    private static final int EXIT_OK = 0;
+
+    /** Process exit status: the project failed to load or contains parse errors. */
+    private static final int EXIT_PARSE_ERROR = 1;
+
+    /** Process exit status: invalid command-line usage (bad or missing arguments). */
+    private static final int EXIT_USAGE_ERROR = 2;
 
     // -------------------------------------------------------- //
     // -------------------- Constructor(s) -------------------- //
@@ -82,11 +98,27 @@ public class ProjectTool {
     // ----------------------------------------------------- //
 
     /**
-     * Entry point for the Dialogue Branch Project Tool.
+     * Entry point for the Dialogue Branch Project Tool. With no arguments, launches the
+     * interactive menu-driven session. With arguments, runs non-interactively — see
+     * {@link #printUsage()} for the exact syntax — and exits with a non-zero status on failure,
+     * making it suitable as a CI gate.
      *
-     * @param args command-line arguments (not used in interactive mode)
+     * @param args command-line arguments; empty for the interactive session.
      */
     public static void main(String... args) {
+        if (args.length == 0) {
+            runInteractive();
+            return;
+        }
+        int exitCode = runNonInteractive(args);
+        if (exitCode != EXIT_OK)
+            System.exit(exitCode);
+    }
+
+    /**
+     * Runs the interactive, menu-driven session on {@link System#in}/{@link System#out}.
+     */
+    private static void runInteractive() {
         Scanner scanner = new Scanner(System.in);
 
         System.out.println("""
@@ -110,6 +142,158 @@ public class ProjectTool {
                         "'. Please enter a number from the menu.\n");
             }
         }
+    }
+
+    // ------------------------------------------------------------------ //
+    // -------------------- Non-Interactive Invocation -------------------- //
+    // ------------------------------------------------------------------ //
+
+    /**
+     * Parses and dispatches a non-interactive invocation. See {@link #printUsage()} for the
+     * accepted syntax.
+     *
+     * @param args the raw command-line arguments (guaranteed non-empty by {@link #main}).
+     * @return the process exit status to use.
+     */
+    private static int runNonInteractive(String[] args) {
+        List<String> argList = new ArrayList<>(List.of(args));
+
+        if (argList.contains("-h") || argList.contains("--help") || argList.contains("-?")) {
+            printUsage();
+            return EXIT_OK;
+        }
+
+        if (argList.isEmpty() || argList.get(0).startsWith("-")) {
+            System.err.println("ERROR: Missing path to a dlb-project.xml file.\n");
+            printUsage();
+            return EXIT_USAGE_ERROR;
+        }
+
+        File projectFile;
+        try {
+            projectFile = resolveXmlFile(argList.remove(0));
+        } catch (InvalidInputException e) {
+            System.err.println("ERROR: " + e.getMessage());
+            return EXIT_USAGE_ERROR;
+        }
+
+        boolean validate = argList.remove("--validate");
+        int executeIndex = argList.indexOf("--execute");
+
+        if (validate && executeIndex >= 0) {
+            System.err.println("ERROR: --validate and --execute cannot be combined.\n");
+            printUsage();
+            return EXIT_USAGE_ERROR;
+        }
+
+        if (executeIndex < 0)
+            return validateNonInteractive(projectFile);
+
+        if (executeIndex + 2 >= argList.size()) {
+            System.err.println(
+                    "ERROR: --execute requires a <language> and a <dialogue> argument.\n");
+            printUsage();
+            return EXIT_USAGE_ERROR;
+        }
+        String language = argList.get(executeIndex + 1);
+        String dialogueName = argList.get(executeIndex + 2);
+        return executeNonInteractive(projectFile, language, dialogueName);
+    }
+
+    /**
+     * Parses the given project and prints its summary (metadata, dialogue/translation counts,
+     * per-dialogue node/speaker/variable details, and any warnings such as orphaned nodes) to
+     * {@link System#out}. Parse errors, if any, go to {@link System#err} instead.
+     *
+     * @param projectFile the {@code dlb-project.xml} file to load the project from.
+     * @return {@link #EXIT_OK} if the project parsed without errors, {@link #EXIT_PARSE_ERROR}
+     *         otherwise. Warnings do not affect the exit status — by design, they can never
+     *         indicate a runtime error, only something worth an author's attention.
+     */
+    private static int validateNonInteractive(File projectFile) {
+        ProjectParserResult result;
+        try {
+            ProjectScriptLoader scriptLoader = new ProjectScriptLoader(projectFile);
+            ProjectParser parser = new ProjectParser(scriptLoader);
+            result = parser.parse();
+        } catch (IOException | ParseException e) {
+            System.err.println("ERROR: Failed to load project: " + e.getMessage());
+            return EXIT_PARSE_ERROR;
+        }
+        if (!result.getParseErrors().isEmpty()) {
+            System.err.println("Project contains parse errors:");
+            result.getParseErrors().forEach((file, errors) ->
+                    errors.forEach(e -> System.err.println("  [" + file + "] " + e.getMessage())));
+            return EXIT_PARSE_ERROR;
+        }
+        System.out.println(result.generateSummaryString());
+        return EXIT_OK;
+    }
+
+    /**
+     * Parses the given project, then runs the named dialogue interactively on the terminal — the
+     * same conversational execution loop ({@link #runDialogueLoop}) used by the interactive
+     * session's "Execute a dialogue script" option.
+     *
+     * @param projectFile   the {@code dlb-project.xml} file to load the project from.
+     * @param language      the language code of the dialogue to execute.
+     * @param dialogueName  the name of the dialogue to execute.
+     * @return {@link #EXIT_OK} once the dialogue finishes, {@link #EXIT_PARSE_ERROR} if the
+     *         project fails to parse, or {@link #EXIT_USAGE_ERROR} if no such dialogue exists.
+     */
+    private static int executeNonInteractive(File projectFile, String language,
+                                             String dialogueName) {
+        ExecutableProject execProject;
+        try {
+            ProjectScriptLoader scriptLoader = new ProjectScriptLoader(projectFile);
+            ProjectParser parser = new ProjectParser(scriptLoader);
+            ProjectParserResult result = parser.parse();
+            if (!result.getParseErrors().isEmpty()) {
+                System.err.println("Project contains parse errors:");
+                result.getParseErrors().forEach((file, errors) ->
+                        errors.forEach(e -> System.err.println("  [" + file + "] " + e.getMessage())));
+                return EXIT_PARSE_ERROR;
+            }
+            execProject = result.getProject();
+        } catch (IOException | ParseException e) {
+            System.err.println("ERROR: Failed to load project for execution: " + e.getMessage());
+            return EXIT_PARSE_ERROR;
+        }
+
+        Map.Entry<ResourcePointer, Dialogue> found =
+                findDialogue(execProject, language, dialogueName);
+        if (found == null) {
+            System.err.println("ERROR: Could not find dialogue '" + dialogueName
+                    + "' (" + language + ") in the parsed project.");
+            return EXIT_USAGE_ERROR;
+        }
+
+        runDialogueLoop(new Scanner(System.in), execProject, found.getKey(), found.getValue());
+        return EXIT_OK;
+    }
+
+    /**
+     * Prints the usage message for non-interactive invocation.
+     */
+    private static void printUsage() {
+        System.out.println("""
+            Usage:
+              ProjectTool
+                  Launch the interactive, menu-driven session (the default with no arguments).
+
+              ProjectTool <path-to-dlb-project.xml> [--validate]
+                  Parse the project non-interactively and print its summary. Prints any parse
+                  errors to stderr and exits with a non-zero status if the project fails to
+                  parse. Warnings (e.g. orphaned nodes) are printed but do not affect the exit
+                  status. This is the default when only a path is given.
+
+              ProjectTool <path-to-dlb-project.xml> --execute <language> <dialogue>
+                  Parse the project, then run the given dialogue interactively on the terminal —
+                  the same conversational execution as the interactive session's "Execute a
+                  dialogue script" option.
+
+              ProjectTool -h | --help | -?
+                  Print this usage message.""");
     }
 
     // ------------------------------------------------------------ //
@@ -215,24 +399,15 @@ public class ProjectTool {
             return;
         }
 
-        ResourcePointer pointer = null;
-        Dialogue dialogue = null;
-        for (Map.Entry<ResourcePointer, Dialogue> entry : execProject.getDialogues().entrySet()) {
-            ResourcePointer rp = entry.getKey();
-            if (rp.getLanguage().equals(selectedLanguage)
-                    && rp.getDialogueName().equals(selectedDialogue)) {
-                pointer = rp;
-                dialogue = entry.getValue();
-                break;
-            }
-        }
-        if (dialogue == null) {
+        Map.Entry<ResourcePointer, Dialogue> found =
+                findDialogue(execProject, selectedLanguage, selectedDialogue);
+        if (found == null) {
             System.out.println("Could not locate dialogue '" + selectedDialogue
                     + "' (" + selectedLanguage + ") in the parsed project.\n");
             return;
         }
 
-        runDialogueLoop(scanner, execProject, pointer, dialogue);
+        runDialogueLoop(scanner, execProject, found.getKey(), found.getValue());
     }
 
     /**
@@ -352,27 +527,39 @@ public class ProjectTool {
         if (np instanceof ExternalNodePointer externalPointer) {
             String targetDialogueName = externalPointer.getAbsoluteTargetDialogue();
             String targetLanguage = currentPointer.getLanguage();
-            ResourcePointer targetPointer = null;
-            Dialogue targetDialogue = null;
-            for (Map.Entry<ResourcePointer, Dialogue> entry : project.getDialogues().entrySet()) {
-                ResourcePointer rp = entry.getKey();
-                if (rp.getLanguage().equals(targetLanguage)
-                        && rp.getDialogueName().equals(targetDialogueName)) {
-                    targetPointer = rp;
-                    targetDialogue = entry.getValue();
-                    break;
-                }
-            }
-            if (targetDialogue == null) {
+            Map.Entry<ResourcePointer, Dialogue> found =
+                    findDialogue(project, targetLanguage, targetDialogueName);
+            if (found == null) {
                 System.err.println("Could not find external dialogue '" + targetDialogueName
                         + "' (" + targetLanguage + ").\n");
                 return null;
             }
             System.out.println("\n[Jumping to dialogue: " + targetDialogueName + "]\n");
-            runDialogueLoop(scanner, project, targetPointer, targetDialogue);
+            runDialogueLoop(scanner, project, found.getKey(), found.getValue());
             return null;
         }
 
+        return null;
+    }
+
+    /**
+     * Looks up the dialogue for the given {@code language} and {@code dialogueName} in the
+     * project's dialogue map.
+     *
+     * @param project      the {@link ExecutableProject} to search.
+     * @param language     the language code to match.
+     * @param dialogueName the dialogue name to match.
+     * @return the matching {@link ResourcePointer}/{@link Dialogue} entry, or {@code null} if no
+     *         dialogue matches both.
+     */
+    private static Map.Entry<ResourcePointer, Dialogue> findDialogue(ExecutableProject project,
+                                                                     String language,
+                                                                     String dialogueName) {
+        for (Map.Entry<ResourcePointer, Dialogue> entry : project.getDialogues().entrySet()) {
+            ResourcePointer rp = entry.getKey();
+            if (rp.getLanguage().equals(language) && rp.getDialogueName().equals(dialogueName))
+                return entry;
+        }
         return null;
     }
 

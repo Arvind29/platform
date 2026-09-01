@@ -20,7 +20,7 @@ The `com.dialoguebranch` package is organised as follows:
 * `editing` — `ProjectMetaDataWriter`, used to export a project's metadata.
 * `i18n` — Translation support: `Translator` applies a `.json` translation file to a `Dialogue`, and `TranslatableExtractor` walks a node's body to extract translatable segments.
 * `exception` — Typed exceptions used throughout the library (`NodeParseException`, `ExecutionException`, and others).
-* `cli` — `ProjectTool`, an interactive command-line inspector (the module's default main class).
+* `cli` — `ProjectTool` (the module's default main class): an interactive, menu-driven inspector when run with no arguments, or a non-interactive, scriptable validator/executor (suited to CI) when run with a project path and flags — see its own `--help`.
 
 For the exact syntax of the `.dlb` script format this library parses and executes, see the [Dialogue Branch Language Definition](/language/).
 
