@@ -44,7 +44,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This class can run queries. It can validate an authentication token.
+ * Runs {@link AuthQuery} instances behind a {@link Permission} check, and resolves the
+ * authenticated caller from the security context.
  *
  * @author Dennis Hofs
  * @author Harm op den Akker
@@ -106,30 +107,28 @@ public class QueryRunner {
 
 			AuthorizationService.require(authenticationInfo, requiredPermission);
 
+			// authenticationInfo is non-null past the guard above.
+			String authenticatedUser = authenticationInfo.getUsername();
+
 			// If the request was made for "this" (authenticated) user
-			if(delegateUser == null || delegateUser.isEmpty()) {
-				String authenticatedUser = "";
-				if(authenticationInfo != null) authenticatedUser = authenticationInfo.getUsername();
+			if (delegateUser == null || delegateUser.isEmpty()) {
 				return query.runQuery(version, authenticatedUser);
 
 			// If the request was made for a specific delegateUser that happens to be "this"
 			// (authenticated) user
-			} else if((authenticationInfo != null) && delegateUser.equals(
-					authenticationInfo.getUsername())) {
+			} else if (delegateUser.equals(authenticatedUser)) {
 				return query.runQuery(version, delegateUser);
 
 			// If "this" user is allowed to act on behalf of another user
-			} else if(AuthorizationService.hasPermission(authenticationInfo,
+			} else if (AuthorizationService.hasPermission(authenticationInfo,
 					Permission.USER_DELEGATE)) {
 				return query.runQuery(version, delegateUser);
 
 			// Otherwise the caller is trying to act on behalf of another user without the
 			// USER_DELEGATE permission.
 			} else {
-				String userIdentifier = authenticationInfo != null
-						? authenticationInfo.getUsername() : "unknown";
 				throw new ForbiddenException(ErrorCode.INSUFFICIENT_PRIVILEGES,
-					"User '" + userIdentifier + "' does not have the '" + Permission.USER_DELEGATE +
+					"User '" + authenticatedUser + "' does not have the '" + Permission.USER_DELEGATE +
 					"' permission required to run a query for delegateUser '" + delegateUser + "'.");
 			}
 		} catch (UnauthorizedException ex) {
