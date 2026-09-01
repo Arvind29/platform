@@ -1,0 +1,55 @@
+name: Feature request / enhancement
+description: Suggest a new capability or an improvement to an existing one.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please search
+        [existing issues](https://github.com/dialoguebranch/platform/issues?q=is%3Aissue)
+        first. For larger changes, expect a design discussion on the issue before
+        implementation starts.
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Which part of the platform would this touch?
+      options:
+        - Core Java (packages/core)
+        - Web Service (apps/api)
+        - BFF (apps/bff)
+        - Studio (apps/studio)
+        - External Variable Service
+        - Documentation
+        - Infrastructure / build / tooling
+        - Multiple / not sure
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / motivation
+      description: What are you trying to do, and what makes it hard or impossible today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What you would like to see happen. Rough ideas are fine.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches you thought about, and why this one seems better.
+    validations:
+      required: false
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Links, prior art, screenshots, related issues.
+    validations:
+      required: false
