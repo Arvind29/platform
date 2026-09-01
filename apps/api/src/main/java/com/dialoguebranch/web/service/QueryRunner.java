@@ -115,13 +115,14 @@ public class QueryRunner {
 					Permission.USER_DELEGATE)) {
 				return query.runQuery(version, delegateUser);
 
-			// Otherwise, something is wrong
+			// Otherwise the caller is trying to act on behalf of another user without the
+			// USER_DELEGATE permission.
 			} else {
-				String userIdentifier = "Unknown";
-				if(authenticationInfo != null) userIdentifier = authenticationInfo.getUsername();
-				throw new UnauthorizedException(ErrorCode.INSUFFICIENT_PRIVILEGES,
-					"Attempting to run query for delegateUser '" + delegateUser +
-					"', but currently logged in user '" + userIdentifier + "' is not an admin.");
+				String userIdentifier = authenticationInfo != null
+						? authenticationInfo.getUsername() : "unknown";
+				throw new ForbiddenException(ErrorCode.INSUFFICIENT_PRIVILEGES,
+					"User '" + userIdentifier + "' does not have the '" + Permission.USER_DELEGATE +
+					"' permission required to run a query for delegateUser '" + delegateUser + "'.");
 			}
 		} catch (UnauthorizedException ex) {
 			response.addHeader("WWW-Authenticate", "None");

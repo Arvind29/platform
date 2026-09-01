@@ -93,4 +93,15 @@ class RbacIntegrationTest {
 						"editor"))
 				.andExpect(status().isNotFound());
 	}
+
+	// Acting on behalf of another user (delegateUser) needs USER_DELEGATE, held only by admin —
+	// even on an end-point the caller is otherwise allowed to use.
+
+	@Test
+	void delegatingToAnotherUserIsForbiddenForANonAdmin() throws Exception {
+		mockMvc.perform(withRoles(get("/v1/variables/get")
+						.param("timeZone", "UTC").param("delegateUser", "someone-else"), "editor"))
+				.andExpect(status().isForbidden())
+				.andExpect(jsonPath("$.code").value("INSUFFICIENT_PRIVILEGES"));
+	}
 }

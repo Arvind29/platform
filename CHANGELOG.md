@@ -19,8 +19,9 @@ and this project adheres to a single monorepo-wide version declared in `global.j
   from the caller's roles via the central role→permission map) instead of an inline list of
   accepted roles ([#58](https://github.com/dialoguebranch/platform/issues/58)). Which roles may
   call each end-point is unchanged, but an authenticated caller who lacks the required permission
-  now gets **`403 Forbidden`** (previously `401 Unauthorized`), still with error code
-  `INSUFFICIENT_PRIVILEGES`; a missing, expired, or invalid token remains `401`.
+  — including a non-admin who passes `delegateUser` — now gets **`403 Forbidden`** (previously
+  `401 Unauthorized`), still with error code `INSUFFICIENT_PRIVILEGES`; a missing, expired, or
+  invalid token remains `401`.
 
 ## [2.0.8] - 2026-09-01
 
