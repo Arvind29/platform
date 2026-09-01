@@ -183,7 +183,7 @@ public class DraftExecutionController {
 							DialogueMessageFactory.generateDialogueMessage(result.executeNodeResult());
 					return new DraftDialogueMessage(result.sessionId(), message);
 				},
-				version, response, delegateUser, application, Permission.DIALOGUE_DRAFT_TEST);
+				version, response, delegateUser, Permission.DIALOGUE_DRAFT_TEST);
 	}
 
 	/**
@@ -259,7 +259,7 @@ public class DraftExecutionController {
 					return new NullableResponse<>(
 							DialogueMessageFactory.generateDialogueMessage(nextNode));
 				},
-				version, response, delegateUser, application, Permission.DIALOGUE_DRAFT_TEST);
+				version, response, delegateUser, Permission.DIALOGUE_DRAFT_TEST);
 	}
 
 	/**
@@ -298,7 +298,7 @@ public class DraftExecutionController {
 					draftExecutionService.cancelSession(session);
 					return null;
 				},
-				version, response, delegateUser, application, Permission.DIALOGUE_DRAFT_TEST);
+				version, response, delegateUser, Permission.DIALOGUE_DRAFT_TEST);
 	}
 
 	/**
@@ -344,7 +344,7 @@ public class DraftExecutionController {
 					draftExecutionService.revertVariables(session, userService);
 					return null;
 				},
-				version, response, delegateUser, application, Permission.DIALOGUE_DRAFT_TEST);
+				version, response, delegateUser, Permission.DIALOGUE_DRAFT_TEST);
 	}
 
 	/**

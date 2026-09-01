@@ -41,9 +41,6 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
 /**
  * Controller for the /auth/... end-points of the Dialogue Branch Web Service.
  *
@@ -90,10 +87,8 @@ public class AuthController {
 	 * for the authenticated user, releasing any associated dialogue state. Token invalidation
 	 * is the responsibility of the client.</p>
 	 *
-	 * @param request the HTTP request (used to extract the bearer token).
-	 * @param response the HTTP response.
 	 * @param version the API version, e.g. '1'.
-	 * @throws HttpException if the token is missing or invalid.
+	 * @throws HttpException if there is no authenticated caller.
 	 */
 	@SecurityRequirement(name = "bearerAuth")
 	@SecurityRequirement(name = "oauth2")
@@ -102,9 +97,6 @@ public class AuthController {
 			"any associated dialogue state.")
 	@RequestMapping(value = "/logout", method = RequestMethod.POST)
 	public void logout(
-			HttpServletRequest request,
-			HttpServletResponse response,
-
 			@Parameter(hidden = true, description = "API Version to use, e.g. '1'")
 			@PathVariable(value = "version")
 			String version
@@ -116,12 +108,10 @@ public class AuthController {
 
 		logger.info("POST /v{}/auth/logout", version);
 
-		var authInfo = QueryRunner.validateAccessToken(
-				ControllerFunctions.extractAccessToken(request), application);
-		doLogout(authInfo.getUsername());
+		doLogout(QueryRunner.requireAuthenticatedUser().getUsername());
 	}
 
-	private Void doLogout(String userId) {
+	private void doLogout(String userId) {
 		com.dialoguebranch.web.service.execution.UserService userService =
 				application.getApplicationManager().getActiveUserService(userId);
 		if (userService != null) {
@@ -130,7 +120,6 @@ public class AuthController {
 		} else {
 			logger.info("Logout called for user '{}' but no active UserService found.", userId);
 		}
-		return null;
 	}
 
 	// --------------------------------------------------------------------- //
@@ -144,10 +133,6 @@ public class AuthController {
 	 * check whether or not that is a valid token. This method will either return 'true', or throw
 	 * an Authentication error.</p>
 	 *
-	 * @param request the HTTPRequest object (to retrieve authentication headers and optional body
-	 *                parameters).
-	 * @param response the HTTP response (to add header WWW-Authenticate in case of a 401
-	 *                 Unauthorized error).
 	 * @param version The API Version to use, e.g. '1'.
 	 * @return 'true' if the token is correct, otherwise it will throw an exception.
 	 * @throws UnauthorizedException if the given authentication token is not (or no longer) valid.
@@ -160,9 +145,6 @@ public class AuthController {
 			"return 'true', or throw an Authentication error.")
 	@RequestMapping(value="/validate", method= RequestMethod.POST)
 	public boolean validate(
-		HttpServletRequest request,
-		HttpServletResponse response,
-
 		@Parameter(hidden = true, description = "API Version to use, e.g. '1'")
 		@PathVariable(value = "version")
 		String version
@@ -178,8 +160,7 @@ public class AuthController {
         logger.info("POST /v{}/auth/validate", version);
 
 		synchronized (AUTH_LOCK) {
-			QueryRunner.validateAccessToken(
-					ControllerFunctions.extractAccessToken(request),application);
+			QueryRunner.requireAuthenticatedUser();
 			return true;
 		}
 	}

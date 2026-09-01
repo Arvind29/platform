@@ -164,11 +164,11 @@ public class VariablesController {
 		if(delegateUser == null || delegateUser.isEmpty()) {
 			return QueryRunner.runQuery(
 				(protocolVersion, authenticatedUser) -> doGetVariables(authenticatedUser, variableNameList, timeZone),
-				version, response, delegateUser, application, Permission.VARIABLE_READ_OWN);
+				version, response, delegateUser, Permission.VARIABLE_READ_OWN);
 		} else {
 			return QueryRunner.runQuery(
 				(protocolVersion, authenticatedUser) -> doGetVariables(delegateUser, variableNameList, timeZone),
-				version, response, delegateUser, application, Permission.VARIABLE_READ_OWN);
+				version, response, delegateUser, Permission.VARIABLE_READ_OWN);
 		}
 	}
 
@@ -216,7 +216,7 @@ public class VariablesController {
 		return QueryRunner.runQuery(
 			(protocolVersion, authenticatedUser) ->
 				application.getApplicationManager().getProjectVariables(projectSlug),
-			version, response, "", application, Permission.VARIABLE_INSPECT_PROJECT);
+			version, response, "", Permission.VARIABLE_INSPECT_PROJECT);
 	}
 
 	/**
@@ -348,11 +348,11 @@ public class VariablesController {
 		if(delegateUser == null || delegateUser.isEmpty()) {
 			QueryRunner.runQuery((protocolVersion, authenticatedUser) ->
 				doSetVariable(authenticatedUser, name, value, timeZone),
-				version, response, delegateUser, application, Permission.VARIABLE_WRITE_OWN);
+				version, response, delegateUser, Permission.VARIABLE_WRITE_OWN);
 		} else {
 			QueryRunner.runQuery((protocolVersion, authenticatedUser) ->
 				doSetVariable(delegateUser, name, value, timeZone),
-				version, response, delegateUser, application, Permission.VARIABLE_WRITE_OWN);
+				version, response, delegateUser, Permission.VARIABLE_WRITE_OWN);
 		}
 	}
 
@@ -465,11 +465,11 @@ public class VariablesController {
 		if(delegateUser == null || delegateUser.isEmpty()) {
 			QueryRunner.runQuery((protocolVersion, authenticatedUser) ->
 							doSetVariables(authenticatedUser, variables, timeZone),
-				version, response, delegateUser, application, Permission.VARIABLE_WRITE_OWN);
+				version, response, delegateUser, Permission.VARIABLE_WRITE_OWN);
 		} else {
 			QueryRunner.runQuery((protocolVersion, authenticatedUser) ->
 							doSetVariables(delegateUser, variables, timeZone),
-				version, response, delegateUser, application, Permission.VARIABLE_WRITE_OWN);
+				version, response, delegateUser, Permission.VARIABLE_WRITE_OWN);
 		}
 	}
 

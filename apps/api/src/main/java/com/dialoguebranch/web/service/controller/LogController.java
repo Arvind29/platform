@@ -122,11 +122,11 @@ public class LogController {
 		if(delegateUser == null || delegateUser.isEmpty()) {
 			return QueryRunner.runQuery(
 					(protocolVersion, authenticatedUser) -> doGetSession(authenticatedUser, sessionId),
-					version, response, delegateUser, application, Permission.LOG_READ_OWN);
+					version, response, delegateUser, Permission.LOG_READ_OWN);
 		} else {
 			return QueryRunner.runQuery(
 					(protocolVersion, authenticatedUser) -> doGetSession(delegateUser, sessionId),
-					version, response, delegateUser, application, Permission.LOG_READ_OWN);
+					version, response, delegateUser, Permission.LOG_READ_OWN);
 		}
 	}
 
@@ -197,11 +197,11 @@ public class LogController {
 		if(delegateUser == null || delegateUser.isEmpty()) {
 			return QueryRunner.runQuery(
 					(protocolVersion, authenticatedUser) -> doVerifyId(authenticatedUser, sessionId),
-					version, response, delegateUser, application, Permission.LOG_READ_OWN);
+					version, response, delegateUser, Permission.LOG_READ_OWN);
 		} else {
 			return QueryRunner.runQuery(
 					(protocolVersion, authenticatedUser) -> doVerifyId(delegateUser, sessionId),
-					version, response, delegateUser, application, Permission.LOG_READ_OWN);
+					version, response, delegateUser, Permission.LOG_READ_OWN);
 		}
 
 	}

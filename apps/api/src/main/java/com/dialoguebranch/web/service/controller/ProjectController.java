@@ -145,7 +145,7 @@ public class ProjectController {
 					logger.info("GET /v{}/project/list-projects [user: {}]", version, user);
 					return projectService.listProjects();
 				},
-				version, response, "", application, Permission.PROJECT_READ);
+				version, response, "", Permission.PROJECT_READ);
 	}
 
 	/**
@@ -175,7 +175,7 @@ public class ProjectController {
 							.orElseThrow(() -> new NotFoundException(
 									"Project not found: " + projectSlug));
 				},
-				version, response, "", application, Permission.PROJECT_READ);
+				version, response, "", Permission.PROJECT_READ);
 	}
 
 	/**
@@ -217,7 +217,7 @@ public class ProjectController {
 							payload.getDisplayName(), payload.getDescription(),
 							payload.getSourceLanguageCode(), payload.getSourceLanguageName());
 				},
-				version, response, "", application, Permission.PROJECT_CREATE);
+				version, response, "", Permission.PROJECT_CREATE);
 	}
 
 	/**
@@ -253,7 +253,7 @@ public class ProjectController {
 					return draftProjectService.updateDraftMetadata(project,
 							payload.getDisplayName(), payload.getDescription());
 				},
-				version, response, "", application, Permission.PROJECT_UPDATE);
+				version, response, "", Permission.PROJECT_UPDATE);
 	}
 
 	/**
@@ -295,7 +295,7 @@ public class ProjectController {
 							payload.getDescription(), payload.getRemoveLanguageIds(),
 							payload.getAddLanguages(), payload.getUpdateLanguages());
 				},
-				version, response, "", application, Permission.PROJECT_UPDATE);
+				version, response, "", Permission.PROJECT_UPDATE);
 	}
 
 	/**
@@ -329,7 +329,7 @@ public class ProjectController {
 					projectService.deleteProject(project);
 					return null;
 				},
-				version, response, "", application, Permission.PROJECT_DELETE);
+				version, response, "", Permission.PROJECT_DELETE);
 	}
 
 	// -------------------------------------------------------------- //
@@ -373,7 +373,7 @@ public class ProjectController {
 									"attachment; filename=\"" + project.getSlug() + ".zip\"")
 							.body(archive);
 				},
-				version, response, "", application, Permission.PROJECT_IMPORT_EXPORT);
+				version, response, "", Permission.PROJECT_IMPORT_EXPORT);
 	}
 
 	/**
@@ -405,7 +405,7 @@ public class ProjectController {
 					logger.info("POST /v{}/project/import-project [user: {}]", version, user);
 					return projectImportService.importProject(file);
 				},
-				version, response, "", application, Permission.PROJECT_IMPORT_EXPORT);
+				version, response, "", Permission.PROJECT_IMPORT_EXPORT);
 	}
 
 	// ------------------------------------------------------------------------ //
@@ -466,7 +466,7 @@ public class ProjectController {
 					return draftProjectService.addDraftLanguage(project,
 							payload.getTranslationLanguageName(), payload.getTranslationLanguageCode());
 				},
-				version, response, "", application, Permission.PROJECT_MANAGE_LANGUAGES);
+				version, response, "", Permission.PROJECT_MANAGE_LANGUAGES);
 	}
 
 	/**
@@ -507,7 +507,7 @@ public class ProjectController {
 					draftProjectService.removeDraftLanguage(language);
 					return null;
 				},
-				version, response, "", application, Permission.PROJECT_MANAGE_LANGUAGES);
+				version, response, "", Permission.PROJECT_MANAGE_LANGUAGES);
 	}
 
 	/**
@@ -547,7 +547,7 @@ public class ProjectController {
 					draftProjectService.restoreDraftLanguage(language);
 					return null;
 				},
-				version, response, "", application, Permission.PROJECT_MANAGE_LANGUAGES);
+				version, response, "", Permission.PROJECT_MANAGE_LANGUAGES);
 	}
 
 	/**
@@ -586,7 +586,7 @@ public class ProjectController {
 							resolveOwnedDraftLanguage(project, translationLanguageId);
 					return draftDialogueService.findDialoguesUsingLanguage(language);
 				},
-				version, response, "", application, Permission.PROJECT_MANAGE_LANGUAGES);
+				version, response, "", Permission.PROJECT_MANAGE_LANGUAGES);
 	}
 
 }

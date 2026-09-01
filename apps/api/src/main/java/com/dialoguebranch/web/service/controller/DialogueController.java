@@ -207,12 +207,12 @@ public class DialogueController {
 			return QueryRunner.runQuery(
 					(protocolVersion, authenticatedUser) -> doStartDialogue(authenticatedUser,
 							projectSlug, dialogueName, language, timeZone, sessionId, startNodeId),
-					version, response, delegateUser, application, Permission.DIALOGUE_RUN);
+					version, response, delegateUser, Permission.DIALOGUE_RUN);
 		} else {
 			return QueryRunner.runQuery(
 					(protocolVersion, authenticatedUser) -> doStartDialogue(delegateUser,
 							projectSlug, dialogueName, language, timeZone, sessionId, startNodeId),
-					version, response, delegateUser, application, Permission.DIALOGUE_RUN);
+					version, response, delegateUser, Permission.DIALOGUE_RUN);
 		}
 	}
 
@@ -349,12 +349,12 @@ public class DialogueController {
 			return QueryRunner.runQuery(
 				(protocolVersion, authenticatedUser) -> doProgressDialogue(authenticatedUser, request,
 						loggedDialogueId, loggedInteractionIndex, replyId),
-				version, response, delegateUser, application, Permission.DIALOGUE_RUN);
+				version, response, delegateUser, Permission.DIALOGUE_RUN);
 		} else {
 			return QueryRunner.runQuery(
 				(protocolVersion, authenticatedUser) -> doProgressDialogue(delegateUser, request,
 					loggedDialogueId, loggedInteractionIndex, replyId),
-				version, response, delegateUser, application, Permission.DIALOGUE_RUN);
+				version, response, delegateUser, Permission.DIALOGUE_RUN);
 		}
 	}
 
@@ -499,12 +499,12 @@ public class DialogueController {
 			return QueryRunner.runQuery(
 					(protocolVersion, authenticatedUser) -> doContinueDialogue(authenticatedUser,
 							projectSlug, dialogueName, timeZone),
-					version, response, delegateUser, application, Permission.DIALOGUE_RUN);
+					version, response, delegateUser, Permission.DIALOGUE_RUN);
 		} else {
 			return QueryRunner.runQuery(
 					(protocolVersion, authenticatedUser) ->
 							doContinueDialogue(delegateUser, projectSlug, dialogueName, timeZone),
-					version, response, delegateUser, application, Permission.DIALOGUE_RUN);
+					version, response, delegateUser, Permission.DIALOGUE_RUN);
 		}
 	}
 
@@ -636,10 +636,10 @@ public class DialogueController {
 
 		if(delegateUser == null || delegateUser.isEmpty()) {
 			QueryRunner.runQuery((protocolVersion, authenticatedUser) -> doCancelDialogue(authenticatedUser,
-				loggedDialogueId), version, response, delegateUser, application, Permission.DIALOGUE_RUN);
+				loggedDialogueId), version, response, delegateUser, Permission.DIALOGUE_RUN);
 		} else {
 			QueryRunner.runQuery((protocolVersion, authenticatedUser) -> doCancelDialogue(delegateUser,
-				loggedDialogueId), version, response, delegateUser, application, Permission.DIALOGUE_RUN);
+				loggedDialogueId), version, response, delegateUser, Permission.DIALOGUE_RUN);
 		}
 	}
 
@@ -752,12 +752,12 @@ public class DialogueController {
 			return QueryRunner.runQuery(
 				(protocolVersion, authenticatedUser) -> doBackDialogue(authenticatedUser, loggedDialogueId,
 						loggedInteractionIndex),
-				version, response, delegateUser, application, Permission.DIALOGUE_RUN);
+				version, response, delegateUser, Permission.DIALOGUE_RUN);
 		} else {
 			return QueryRunner.runQuery(
 				(protocolVersion, authenticatedUser) -> doBackDialogue(delegateUser, loggedDialogueId,
 						loggedInteractionIndex),
-				version, response, delegateUser, application, Permission.DIALOGUE_RUN);
+				version, response, delegateUser, Permission.DIALOGUE_RUN);
 		}
 	}
 
@@ -878,11 +878,11 @@ public class DialogueController {
 		if(delegateUser == null || delegateUser.isEmpty()) {
 			return QueryRunner.runQuery(
 					(protocolVersion, authenticatedUser) -> doGetOngoingDialogue(authenticatedUser, projectSlug, timeZone),
-					version, response, delegateUser, application, Permission.DIALOGUE_RUN);
+					version, response, delegateUser, Permission.DIALOGUE_RUN);
 		} else {
 			return QueryRunner.runQuery(
 					(protocolVersion, authenticatedUser) -> doGetOngoingDialogue(delegateUser, projectSlug, timeZone),
-					version, response, delegateUser, application, Permission.DIALOGUE_RUN);
+					version, response, delegateUser, Permission.DIALOGUE_RUN);
 		}
 	}
 
@@ -983,7 +983,7 @@ public class DialogueController {
 
 		return QueryRunner.runQuery(
 				(protocolVersion, user) -> doListDialogues(projectSlug),
-				version, response, "", application, Permission.DIALOGUE_LIST);
+				version, response, "", Permission.DIALOGUE_LIST);
 	}
 
 	private DialogueListPayload doListDialogues(String projectSlug) {

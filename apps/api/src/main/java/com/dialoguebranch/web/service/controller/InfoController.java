@@ -199,7 +199,7 @@ public class InfoController {
 
 					return payload;
 				},
-				version, response, "", application, Permission.SERVICE_INFO_TECHNICAL);
+				version, response, "", Permission.SERVICE_INFO_TECHNICAL);
 	}
 
 }

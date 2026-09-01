@@ -59,8 +59,9 @@ public class QueryRunner {
 	/**
 	 * Runs a query, first requiring that the authenticated user holds {@code requiredPermission}
 	 * (see {@link AuthorizationService}). An authenticated user without the permission gets a
-	 * {@code 403 Forbidden}; a missing or invalid token has already been rejected as a
-	 * {@code 401 Unauthorized} by the OAuth2 resource-server filter before this point.
+	 * {@code 403 Forbidden}; a request with no authenticated caller gets a {@code 401
+	 * Unauthorized} (normally the OAuth2 resource-server filter has already rejected it as such
+	 * before this point).
 	 *
 	 * @param <T> the return type of the query result.
 	 * @param query the query
@@ -68,8 +69,6 @@ public class QueryRunner {
 	 * @param response the HTTP response to add header WWW-Authenticate in case of 401 Unauthorized
 	 * @param delegateUser the "Dialogue Branch user" for which this query should be run, or ""
 	 *                     if this should be for the currently authenticated user
-	 * @param application unused, kept so call sites can pass their {@link Application} context
-	 *                    positionally
 	 * @param requiredPermission the permission the caller must hold
 	 * @return the query result
 	 * @throws HttpException if the query should return an HTTP error status
@@ -77,7 +76,7 @@ public class QueryRunner {
 	 *                   Internal Server Error.
 	 */
 	public static <T> T runQuery(AuthQuery<T> query, String versionName,
-			HttpServletResponse response, String delegateUser, Application application,
+			HttpServletResponse response, String delegateUser,
 			Permission requiredPermission)
 			throws HttpException {
 		ProtocolVersion version;
@@ -95,6 +94,15 @@ public class QueryRunner {
 			if (SecurityContextHolder.getContext().getAuthentication()
 					instanceof JwtAuthenticationToken jwtAuth)
 				authenticationInfo = authenticationInfoFromKeycloakJwt(jwtAuth.getToken());
+
+			// Belt and braces: every endpoint routed through here is behind
+			// .anyRequest().authenticated(), so an unauthenticated request is already a 401 before
+			// this point. Should that ever stop holding (e.g. an endpoint added to the permitAll
+			// list still calling runQuery), a missing caller is a 401, not the 403 that
+			// AuthorizationService.require would otherwise raise for a null user.
+			if (authenticationInfo == null)
+				throw new UnauthorizedException(ErrorCode.AUTH_TOKEN_NOT_FOUND,
+						"No valid authentication token found.");
 
 			AuthorizationService.require(authenticationInfo, requiredPermission);
 
@@ -136,20 +144,15 @@ public class QueryRunner {
 	}
 
 	/**
-	 * Validates the access token in the specified HTTP request. If no token is specified,
-	 * or the token is empty or invalid, it will throw an HttpException with 401 Unauthorized.
-	 * Otherwise, it will return the {@link AuthenticationInfo} object representing the information
-	 * of the authenticated user.
+	 * Resolves the authenticated caller from the validated security context. The OAuth2
+	 * resource-server filter has already verified (or rejected, as a 401) the bearer token by the
+	 * time this runs, so a {@link JwtAuthenticationToken} in the context is trustworthy; anything
+	 * else means there is no authenticated caller and yields a 401.
 	 *
-	 * @param providedAccessToken the JWT access token string to validate.
-	 * @param application the {@link Application} context (unused, kept for a stable call signature).
-	 * @return the {@link AuthenticationInfo} for the authenticated user
-	 * @throws UnauthorizedException if no token is specified, or the token is empty or invalid
+	 * @return the {@link AuthenticationInfo} for the authenticated caller
+	 * @throws UnauthorizedException if there is no authenticated caller in the security context
 	 */
-	public static AuthenticationInfo validateAccessToken(String providedAccessToken,
-														 Application application)
-			throws UnauthorizedException {
-
+	public static AuthenticationInfo requireAuthenticatedUser() throws UnauthorizedException {
 		var authentication = SecurityContextHolder.getContext().getAuthentication();
 		if (!(authentication instanceof JwtAuthenticationToken jwtAuth)) {
 			throw new UnauthorizedException(ErrorCode.AUTH_TOKEN_INVALID,
