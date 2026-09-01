@@ -109,9 +109,10 @@ dlb:
       realm: dialoguebranch
       client-id: dlb-web-service
       # Client IDs (matched against each token's "azp" claim) whose tokens this service accepts.
-      # Unset: only this service's own client-id is trusted. In a shared realm, list the sibling
-      # services' client IDs here. A single "*" entry accepts any client from a trusted realm.
-      # trusted-clients: [dlb-web-service]
+      # Unset: this service's own client-id plus the BFF's ("dlb-bff") are trusted. An explicit
+      # list replaces that default (keep "dlb-bff" if behind the BFF); "*" trusts any client in
+      # the realm.
+      # trusted-clients: [dlb-web-service, dlb-bff]
 
   # ---- External Variable Service ----
   external-variable-service:

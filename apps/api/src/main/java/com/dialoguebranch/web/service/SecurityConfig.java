@@ -70,9 +70,9 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * <p>Trusting a realm's signing keys says nothing about <em>which client</em> in that realm a
  * token was issued to. On top of the realm check, {@link AzpClaimValidator} matches each token's
- * {@code azp} claim against {@code dlb.auth.keycloak.trusted-clients} (defaulting to just this
- * service's own client id, so a standalone deployment is strict by default). A {@code "*"} entry
- * in that list turns the client check off again.</p>
+ * {@code azp} claim against {@code dlb.auth.keycloak.trusted-clients} (defaulting to this service's
+ * own client id plus the bundled BFF's {@code dlb-bff}, since Studio always reaches this service
+ * through the BFF). A {@code "*"} entry in that list turns the client check off again.</p>
  *
  * @author Dennis Hofs
  */

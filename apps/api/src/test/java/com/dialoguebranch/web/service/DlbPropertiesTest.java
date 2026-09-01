@@ -13,26 +13,33 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class DlbPropertiesTest {
 
     @Test
-    void effectiveTrustedClientsDefaultsToTheConfiguredClientIdWhenUnset() {
+    void effectiveTrustedClientsDefaultsToTheClientIdPlusTheBffWhenUnset() {
         DlbProperties.Auth.Keycloak kc = new DlbProperties.Auth.Keycloak();
         kc.setClientId("dlb-web-service");
-        assertEquals(List.of("dlb-web-service"), kc.getEffectiveTrustedClients());
+        assertEquals(List.of("dlb-web-service", "dlb-bff"), kc.getEffectiveTrustedClients());
     }
 
     @Test
-    void effectiveTrustedClientsFollowsACustomClientIdWhenUnset() {
+    void effectiveTrustedClientsFollowsACustomClientIdButStillAddsTheBffWhenUnset() {
         DlbProperties.Auth.Keycloak kc = new DlbProperties.Auth.Keycloak();
         kc.setClientId("my-renamed-client");
-        assertEquals(List.of("my-renamed-client"), kc.getEffectiveTrustedClients());
+        assertEquals(List.of("my-renamed-client", "dlb-bff"), kc.getEffectiveTrustedClients());
     }
 
     @Test
-    void effectiveTrustedClientsUsesTheExplicitListWhenSet() {
+    void effectiveTrustedClientsIsNotDuplicatedWhenTheClientIdIsAlreadyTheBffClientId() {
+        DlbProperties.Auth.Keycloak kc = new DlbProperties.Auth.Keycloak();
+        kc.setClientId("dlb-bff");
+        assertEquals(List.of("dlb-bff"), kc.getEffectiveTrustedClients());
+    }
+
+    @Test
+    void effectiveTrustedClientsUsesTheExplicitListVerbatimWhenSet() {
         DlbProperties.Auth.Keycloak kc = new DlbProperties.Auth.Keycloak();
         kc.setClientId("dlb-web-service");
-        kc.setTrustedClients(List.of("dlb-web-service", "sibling-a", "sibling-b"));
-        assertEquals(List.of("dlb-web-service", "sibling-a", "sibling-b"),
-                kc.getEffectiveTrustedClients());
+        // An explicit list replaces the default entirely — the BFF is only auto-added when unset.
+        kc.setTrustedClients(List.of("dlb-web-service", "sibling-a"));
+        assertEquals(List.of("dlb-web-service", "sibling-a"), kc.getEffectiveTrustedClients());
     }
 
     @Test

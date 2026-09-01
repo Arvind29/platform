@@ -281,6 +281,14 @@ public class DlbProperties {
             /** Creates a new {@link Keycloak} configuration instance with default values. */
             public Keycloak() { }
 
+            /**
+             * Client id of the bundled Backend-for-Frontend ({@code apps/bff}), trusted by default
+             * alongside {@link #getClientId()} because the BFF forwards tokens issued to its own
+             * client and Dialogue Branch Studio reaches the Web Service exclusively through it.
+             * Kept in sync with the BFF's own {@code dlb.bff.oauth2-client-id} default.
+             */
+            static final String DEFAULT_BFF_CLIENT_ID = "dlb-bff";
+
             private String baseUrl = "http://keycloak:8080/";
             private String browserBaseUrl = "";
             private String realm = "dialoguebranch";
@@ -358,6 +366,10 @@ public class DlbProperties {
              * accepts a token from any client in an otherwise-trusted realm.
              * Set {@code DLB_AUTH_KEYCLOAK_TRUSTED_CLIENTS} at runtime (comma-separated).
              *
+             * <p>An explicit list replaces the default entirely — it is <em>not</em> merged with
+             * {@link #getClientId()} or {@link #DEFAULT_BFF_CLIENT_ID}, so a BFF-fronted deployment
+             * that sets this must list {@code dlb-bff} itself.
+             *
              * @return the configured trusted client IDs, possibly empty.
              */
             public java.util.List<String> getTrustedClients() { return trustedClients; }
@@ -373,16 +385,23 @@ public class DlbProperties {
 
             /**
              * Returns the trusted client IDs to actually enforce: the explicitly configured
-             * {@link #getTrustedClients()} when non-empty, otherwise a single-element list holding
-             * just this service's own {@link #getClientId()}. This makes a fresh deployment strict
-             * by default (only its own client's tokens are accepted) without the deployer having to
-             * set the property, while still following a custom {@code client-id} if one was set.
+             * {@link #getTrustedClients()} verbatim when non-empty, otherwise this service's own
+             * {@link #getClientId()} plus {@link #DEFAULT_BFF_CLIENT_ID}. The BFF is in the default
+             * because the standard topology (Dialogue Branch Studio &rarr; BFF &rarr; Web Service)
+             * always presents {@code dlb-bff}'s tokens here; a deployment with no BFF simply never
+             * sees a token with that {@code azp}, so the extra default entry is harmless. A custom
+             * {@code client-id} is still honoured, and if it already equals {@code dlb-bff} the list
+             * is not duplicated.
              *
              * @return a non-empty list of trusted client IDs.
              */
             public java.util.List<String> getEffectiveTrustedClients() {
-                return trustedClients.isEmpty() ? java.util.List.of(clientId)
-                        : java.util.List.copyOf(trustedClients);
+                if (!trustedClients.isEmpty()) {
+                    return java.util.List.copyOf(trustedClients);
+                }
+                return clientId.equals(DEFAULT_BFF_CLIENT_ID)
+                        ? java.util.List.of(clientId)
+                        : java.util.List.of(clientId, DEFAULT_BFF_CLIENT_ID);
             }
         }
     }
