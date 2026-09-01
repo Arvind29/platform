@@ -43,7 +43,7 @@ import java.util.Set;
  * authoring permissions, and {@link #ADMIN} is {@link #EDITOR} plus the project-lifecycle and
  * service-administration permissions (so {@code ADMIN} currently grants every {@link Permission}).
  * Making roles configurable, or letting an administrator define new ones, is deliberately left for
- * later — see <a href="https://github.com/dialoguebranch/platform/issues/58">#58</a>.</p>
+ * later — see <a href="https://github.com/dialoguebranch/platform/issues/99">#99</a>.</p>
  *
  * @author Harm op den Akker
  */

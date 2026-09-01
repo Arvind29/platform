@@ -42,9 +42,11 @@ import com.dialoguebranch.web.service.exception.ForbiddenException;
  * token is a separate concern handled earlier, as a 401. Callers must therefore only reach this
  * class with an {@link AuthenticationInfo} that already represents a validated token.</p>
  *
- * <p>No end-point calls this yet — see
- * <a href="https://github.com/dialoguebranch/platform/issues/58">#58</a> for wiring it into
- * {@link com.dialoguebranch.web.service.QueryRunner} in place of the current explicit role lists.</p>
+ * <p>{@link com.dialoguebranch.web.service.QueryRunner#runQuery} calls {@link
+ * #require(AuthenticationInfo, Permission)} once per request, with the single {@link Permission}
+ * that end-point declares; there are no per-controller role lists any more. Making the role &rarr;
+ * permission mapping editable at runtime is a separate follow-up — see
+ * <a href="https://github.com/dialoguebranch/platform/issues/99">#99</a>.</p>
  *
  * @author Harm op den Akker
  */

@@ -40,9 +40,9 @@ package com.dialoguebranch.web.service.auth;
  * by resource and operation, mirroring the {@code resource.operation} naming used in
  * <a href="https://github.com/dialoguebranch/platform/issues/28">#28</a>.</p>
  *
- * <p>Nothing consumes these yet — {@link com.dialoguebranch.web.service.QueryRunner} still checks
- * an explicit role list. Wiring the endpoints onto permissions is
- * <a href="https://github.com/dialoguebranch/platform/issues/58">#58</a>.</p>
+ * <p>{@link com.dialoguebranch.web.service.QueryRunner#runQuery} takes the required {@link
+ * Permission} directly and enforces it through {@link AuthorizationService}; each controller passes
+ * the one its end-point needs.</p>
  *
  * @author Harm op den Akker
  */
