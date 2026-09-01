@@ -62,6 +62,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa:3.5.4'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test:3.5.4'
+	testImplementation 'org.springframework.security:spring-security-test:6.5.2'
 	testRuntimeOnly 'com.h2database:h2:2.3.232'
 
 }

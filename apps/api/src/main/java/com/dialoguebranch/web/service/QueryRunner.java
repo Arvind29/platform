@@ -29,6 +29,8 @@
 package com.dialoguebranch.web.service;
 
 import com.dialoguebranch.web.service.auth.AuthenticationInfo;
+import com.dialoguebranch.web.service.auth.AuthorizationService;
+import com.dialoguebranch.web.service.auth.Permission;
 import com.dialoguebranch.web.service.exception.*;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -54,20 +56,29 @@ public class QueryRunner {
 	/** Utility class — not instantiated. */
 	private QueryRunner() { }
 
+	/** A pluggable authorization decision applied to the (possibly {@code null}) authenticated user. */
+	@FunctionalInterface
+	private interface AuthorizationCheck {
+		void check(AuthenticationInfo authenticationInfo) throws HttpException;
+	}
+
 	/**
-	 * Runs a query on the authentication database. If the HTTP request is specified, it will
-	 * validate the authentication token. If there is no token in the request, or the token is empty
-	 * or invalid, it throws an HttpException with 401 Unauthorized. If the request is null, it will
-	 * not validate anything. This can be used for a login or signup.
+	 * Runs a query, first requiring that the authenticated user holds at least one of
+	 * {@code requiredRoles}. This is the legacy role-list form; new code should use the
+	 * {@link Permission} overload, which expresses the requirement as a single permission and
+	 * fails with {@code 403 Forbidden} rather than {@code 401 Unauthorized}. Passing no roles
+	 * requires only a valid token.
 	 *
 	 * @param <T> the return type of the query result.
 	 * @param query the query
 	 * @param versionName the protocol version name (see {@link ProtocolVersion})
-	 * @param providedAccessToken the provided JWT access token
+	 * @param providedAccessToken ignored — the caller is resolved from the security context; kept
+	 *                            only so existing call sites compile unchanged
 	 * @param response the HTTP response to add header WWW-Authenticate in case of 401 Unauthorized
 	 * @param delegateUser the "Dialogue Branch user" for which this query should be run, or ""
 	 *                     if this should be for the currently authenticated user
-	 * @param application the {@link Application} context.
+	 * @param application unused, kept for call-site compatibility
+	 * @param requiredRoles the roles of which the user must hold at least one
 	 * @return the query result
 	 * @throws HttpException if the query should return an HTTP error status
 	 * @throws HttpException if an unexpected error occurs. This results in HTTP error status 500
@@ -76,6 +87,43 @@ public class QueryRunner {
 	public static <T> T runQuery(AuthQuery<T> query, String versionName, String providedAccessToken,
 			HttpServletResponse response, String delegateUser, Application application,
 			String... requiredRoles)
+			throws HttpException {
+		return runQuery(query, versionName, response, delegateUser,
+				authenticationInfo -> checkRoles(authenticationInfo, requiredRoles));
+	}
+
+	/**
+	 * Runs a query, first requiring that the authenticated user holds {@code requiredPermission}
+	 * (see {@link AuthorizationService}). An authenticated user without the permission gets a
+	 * {@code 403 Forbidden}; a missing or invalid token has already been rejected as a
+	 * {@code 401 Unauthorized} by the OAuth2 resource-server filter before this point.
+	 *
+	 * @param <T> the return type of the query result.
+	 * @param query the query
+	 * @param versionName the protocol version name (see {@link ProtocolVersion})
+	 * @param response the HTTP response to add header WWW-Authenticate in case of 401 Unauthorized
+	 * @param delegateUser the "Dialogue Branch user" for which this query should be run, or ""
+	 *                     if this should be for the currently authenticated user
+	 * @param application unused, kept so call sites can pass their {@link Application} context
+	 *                    positionally like the legacy overload
+	 * @param requiredPermission the permission the caller must hold
+	 * @return the query result
+	 * @throws HttpException if the query should return an HTTP error status
+	 * @throws HttpException if an unexpected error occurs. This results in HTTP error status 500
+	 *                   Internal Server Error.
+	 */
+	public static <T> T runQuery(AuthQuery<T> query, String versionName,
+			HttpServletResponse response, String delegateUser, Application application,
+			Permission requiredPermission)
+			throws HttpException {
+		return runQuery(query, versionName, response, delegateUser,
+				authenticationInfo -> AuthorizationService.require(authenticationInfo,
+						requiredPermission));
+	}
+
+	private static <T> T runQuery(AuthQuery<T> query, String versionName,
+			HttpServletResponse response, String delegateUser,
+			AuthorizationCheck authorizationCheck)
 			throws HttpException {
 		ProtocolVersion version;
 		try {
@@ -86,28 +134,14 @@ public class QueryRunner {
 		try {
 			AuthenticationInfo authenticationInfo = null;
 
-			if (providedAccessToken != null)
-				authenticationInfo = validateAccessToken(providedAccessToken, application);
+			// Resolve the caller from the validated security context: the OAuth2 resource-server
+			// filter has already rejected (401) any request whose bearer token was missing or
+			// invalid, so a JwtAuthenticationToken here is trustworthy.
+			if (SecurityContextHolder.getContext().getAuthentication()
+					instanceof JwtAuthenticationToken jwtAuth)
+				authenticationInfo = authenticationInfoFromKeycloakJwt(jwtAuth.getToken());
 
-			// Check that the authenticated user has at least one of the required roles
-			if (requiredRoles.length > 0) {
-				boolean hasRequiredRole = false;
-				if (authenticationInfo != null) {
-					for (String role : requiredRoles) {
-						if (authenticationInfo.hasRole(role)) {
-							hasRequiredRole = true;
-							break;
-						}
-					}
-				}
-				if (!hasRequiredRole) {
-					String userIdentifier = authenticationInfo != null
-							? authenticationInfo.getUsername() : "Unknown";
-					throw new UnauthorizedException(ErrorCode.INSUFFICIENT_PRIVILEGES,
-							"User '" + userIdentifier + "' does not have the required role to " +
-							"access this endpoint.");
-				}
-			}
+			authorizationCheck.check(authenticationInfo);
 
 			// If the request was made for "this" (authenticated) user
 			if(delegateUser == null || delegateUser.isEmpty()) {
@@ -121,9 +155,9 @@ public class QueryRunner {
 					authenticationInfo.getUsername())) {
 				return query.runQuery(version, delegateUser);
 
-			// If "this" user is an admin making a delegated call
-			} else if((authenticationInfo != null) && (authenticationInfo.hasRole(
-					AuthenticationInfo.USER_ROLE_ADMIN))) {
+			// If "this" user is allowed to act on behalf of another user
+			} else if(AuthorizationService.hasPermission(authenticationInfo,
+					Permission.USER_DELEGATE)) {
 				return query.runQuery(version, delegateUser);
 
 			// Otherwise, something is wrong
@@ -142,6 +176,28 @@ public class QueryRunner {
 		} catch (Exception ex) {
 			logger.error("Internal Server Error: {}", ex.getMessage(), ex);
 			throw new InternalServerErrorException();
+		}
+	}
+
+	private static void checkRoles(AuthenticationInfo authenticationInfo, String[] requiredRoles)
+			throws UnauthorizedException {
+		if (requiredRoles.length == 0)
+			return;
+		boolean hasRequiredRole = false;
+		if (authenticationInfo != null) {
+			for (String role : requiredRoles) {
+				if (authenticationInfo.hasRole(role)) {
+					hasRequiredRole = true;
+					break;
+				}
+			}
+		}
+		if (!hasRequiredRole) {
+			String userIdentifier = authenticationInfo != null
+					? authenticationInfo.getUsername() : "Unknown";
+			throw new UnauthorizedException(ErrorCode.INSUFFICIENT_PRIVILEGES,
+					"User '" + userIdentifier + "' does not have the required role to " +
+					"access this endpoint.");
 		}
 	}
 
