@@ -17,6 +17,7 @@ The version for the entire monorepo is declared once in `global.json` at the roo
 
 - Never create git commits, push to remote, or open/close/comment on pull requests unless explicitly asked to do so.
 - Never add a `Co-Authored-By` trailer or any Claude co-attribution to commit messages.
+- When a change has a user-visible effect — a new feature, a bug fix, a behavior change, a security fix, a breaking API change — add an entry to `CHANGELOG.md`'s `[Unreleased]` section, in the existing Keep a Changelog style (category subheading, referencing the GitHub issue if one exists). Skip it for refactors, formatting, test-only changes, dependency/lockfile bumps, and other changes with no effect a user or API consumer would notice.
 
 ## Build Commands
 
