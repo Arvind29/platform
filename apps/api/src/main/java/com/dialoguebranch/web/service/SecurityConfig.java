@@ -36,6 +36,9 @@ import org.springframework.security.authentication.AuthenticationManagerResolver
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2TokenValidator;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
@@ -64,6 +67,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * instance that follows this naming convention, so tokens from any of those realms are accepted
  * here, all sharing this same Dialogue Branch backend and database. See that method's own Javadoc
  * for what this does and does not guarantee.</p>
+ *
+ * <p>Trusting a realm's signing keys says nothing about <em>which client</em> in that realm a
+ * token was issued to. On top of the realm check, {@link AzpClaimValidator} matches each token's
+ * {@code azp} claim against {@code dlb.auth.keycloak.trusted-clients} (defaulting to just this
+ * service's own client id, so a standalone deployment is strict by default). A {@code "*"} entry
+ * in that list turns the client check off again.</p>
  *
  * @author Dennis Hofs
  */
@@ -140,6 +149,14 @@ public class SecurityConfig {
      * network call, by contrast, always goes to this service's own trusted {@code base-url}, with
      * only the realm name (never a full URL) taken from the token.
      *
+     * <p>Each per-issuer {@link NimbusJwtDecoder} validates signature, expiry and the exact issuer
+     * ({@link JwtValidators#createDefaultWithIssuer}), plus an {@link AzpClaimValidator} that
+     * matches the token's {@code azp} claim against
+     * {@link DlbProperties.Auth.Keycloak#getEffectiveTrustedClients()} — so being signed by a
+     * trusted realm is necessary but not sufficient; the token must also have been issued to a
+     * client this service is configured to trust. The single {@code AzpClaimValidator} is shared
+     * across every per-issuer decoder (the trusted-client list does not vary by realm).
+     *
      * <p><strong>What this does not do:</strong> this service has no notion of tenant lifecycle
      * beyond Keycloak itself, so it cannot tell a realm the hosting platform currently considers
      * active apart from one it has deactivated elsewhere but not deleted from Keycloak. Any realm
@@ -147,6 +164,8 @@ public class SecurityConfig {
      * Keycloak. A hosting platform that needs to revoke a tenant's access to dialogue features
      * more strictly than that should also enforce it at whatever layer of its own tracks tenant
      * lifecycle, upstream of this service.
+     *
+     * @return the per-issuer {@link AuthenticationManagerResolver} used for OAuth2 JWT validation.
      */
     @Bean
     public AuthenticationManagerResolver<HttpServletRequest> keycloakAuthenticationManagerResolver() {
@@ -154,6 +173,7 @@ public class SecurityConfig {
         String internalRealmsBase = normalizeBaseUrl(kc.getBaseUrl()) + "realms/";
         String issuerRealmsBase = normalizeBaseUrl(kc.getBrowserBaseUrl()) + "realms/";
         String adminRealm = kc.getRealm();
+        AzpClaimValidator azpValidator = new AzpClaimValidator(kc.getEffectiveTrustedClients());
         Map<String, AuthenticationManager> managerCache = new ConcurrentHashMap<>();
 
         return new JwtIssuerAuthenticationManagerResolver(issuer -> {
@@ -164,7 +184,9 @@ public class SecurityConfig {
             return managerCache.computeIfAbsent(issuer, iss -> {
                 String jwkSetUri = internalRealmsBase + realmName + "/protocol/openid-connect/certs";
                 NimbusJwtDecoder decoder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
-                decoder.setJwtValidator(JwtValidators.createDefaultWithIssuer(iss));
+                OAuth2TokenValidator<Jwt> validator = new DelegatingOAuth2TokenValidator<>(
+                        JwtValidators.createDefaultWithIssuer(iss), azpValidator);
+                decoder.setJwtValidator(validator);
                 JwtAuthenticationProvider provider = new JwtAuthenticationProvider(decoder);
                 return (AuthenticationManager) authentication -> provider.authenticate(authentication);
             });

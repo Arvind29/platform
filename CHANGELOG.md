@@ -97,6 +97,17 @@ and this project adheres to a single monorepo-wide version declared in `global.j
   in and that other languages are added later as translations ([#76](https://github.com/dialoguebranch/platform/issues/76)).
   This matches the wording already used in the project configuration dialog.
 
+### Security
+
+- The Web Service now checks each token's `azp` (client) claim against
+  `dlb.auth.keycloak.trusted-clients` (env `DLB_AUTH_KEYCLOAK_TRUSTED_CLIENTS`), on top of the
+  existing signature/issuer/expiry checks. Unset, it trusts only its own `client-id`, so a
+  standalone deployment is strict by default. In a shared Keycloak realm, list the sibling
+  services' client IDs to accept their tokens; a single `*` entry accepts any client from a
+  trusted realm (the previous behaviour). Deployments where other services call the Web Service
+  with their own client's token must set this property or those calls will start returning `401`
+  ([#67](https://github.com/dialoguebranch/platform/issues/67)).
+
 ## [2.0.7] - 2026-08-12
 
 ### Added

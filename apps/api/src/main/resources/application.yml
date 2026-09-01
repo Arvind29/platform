@@ -9,6 +9,7 @@
 #   dlb.mariadb.password                → DLB_MARIADB_PASSWORD
 #   dlb.auth.keycloak.base-url          → DLB_AUTH_KEYCLOAK_BASE_URL
 #   dlb.auth.keycloak.client-id         → DLB_AUTH_KEYCLOAK_CLIENT_ID
+#   dlb.auth.keycloak.trusted-clients   → DLB_AUTH_KEYCLOAK_TRUSTED_CLIENTS
 #
 # The defaults below are tuned for local development (infrastructure/docker/compose.yml).
 # Production deployments must override all credentials via environment variables.
@@ -107,6 +108,10 @@ dlb:
       base-url: http://localhost:8081/
       realm: dialoguebranch
       client-id: dlb-web-service
+      # Client IDs (matched against each token's "azp" claim) whose tokens this service accepts.
+      # Unset: only this service's own client-id is trusted. In a shared realm, list the sibling
+      # services' client IDs here. A single "*" entry accepts any client from a trusted realm.
+      # trusted-clients: [dlb-web-service]
 
   # ---- External Variable Service ----
   external-variable-service:

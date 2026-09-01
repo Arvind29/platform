@@ -285,6 +285,7 @@ public class DlbProperties {
             private String browserBaseUrl = "";
             private String realm = "dialoguebranch";
             private String clientId = "dlb-web-service";
+            private java.util.List<String> trustedClients = new java.util.ArrayList<>();
 
             /**
              * Returns the Keycloak base URL used by this service itself to reach Keycloak (e.g. for
@@ -348,6 +349,41 @@ public class DlbProperties {
              * @param clientId the client ID.
              */
             public void setClientId(String clientId) { this.clientId = clientId; }
+
+            /**
+             * Returns the raw list of Keycloak client IDs whose tokens this service accepts,
+             * matched against each token's {@code azp} claim. Empty (the default) means "not
+             * configured"; use {@link #getEffectiveTrustedClients()} for the resolved list that
+             * callers should actually enforce. A single {@code "*"} entry disables the check and
+             * accepts a token from any client in an otherwise-trusted realm.
+             * Set {@code DLB_AUTH_KEYCLOAK_TRUSTED_CLIENTS} at runtime (comma-separated).
+             *
+             * @return the configured trusted client IDs, possibly empty.
+             */
+            public java.util.List<String> getTrustedClients() { return trustedClients; }
+
+            /**
+             * Sets the list of Keycloak client IDs whose tokens this service accepts.
+             *
+             * @param trustedClients the trusted client IDs.
+             */
+            public void setTrustedClients(java.util.List<String> trustedClients) {
+                this.trustedClients = trustedClients;
+            }
+
+            /**
+             * Returns the trusted client IDs to actually enforce: the explicitly configured
+             * {@link #getTrustedClients()} when non-empty, otherwise a single-element list holding
+             * just this service's own {@link #getClientId()}. This makes a fresh deployment strict
+             * by default (only its own client's tokens are accepted) without the deployer having to
+             * set the property, while still following a custom {@code client-id} if one was set.
+             *
+             * @return a non-empty list of trusted client IDs.
+             */
+            public java.util.List<String> getEffectiveTrustedClients() {
+                return trustedClients.isEmpty() ? java.util.List.of(clientId)
+                        : java.util.List.copyOf(trustedClients);
+            }
         }
     }
 
