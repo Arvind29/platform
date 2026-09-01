@@ -89,7 +89,7 @@ and this project adheres to a single monorepo-wide version declared in `global.j
   must still name `dlb-bff` on a BFF-fronted deployment. Tokens from an untrusted client are
   rejected with `401` ([#67](https://github.com/dialoguebranch/platform/issues/67)).
 
-## [2.0.8] - 2026-09-01
+## [0.1.8] - 2026-09-01
 
 ### Changed
 
@@ -181,7 +181,7 @@ and this project adheres to a single monorepo-wide version declared in `global.j
   in and that other languages are added later as translations ([#76](https://github.com/dialoguebranch/platform/issues/76)).
   This matches the wording already used in the project configuration dialog.
 
-## [2.0.7] - 2026-08-12
+## [0.1.7] - 2026-08-12
 
 ### Added
 
@@ -201,7 +201,7 @@ and this project adheres to a single monorepo-wide version declared in `global.j
   ever taken from a token's own (unverified) `iss` claim to select which known-trusted realm to
   check the token's signature against, not to pick an arbitrary network address to call out to.
 
-## [2.0.6] - 2026-07-29
+## [0.1.6] - 2026-07-29
 
 ### Added
 
@@ -234,7 +234,7 @@ and this project adheres to a single monorepo-wide version declared in `global.j
   `{baseUrl}` placeholder when the redirect URL is left at its default, honoring the reverse proxy's
   forwarded headers.
 
-## [2.0.5] - 2026-07-29
+## [0.1.5] - 2026-07-29
 
 ### Added
 
@@ -279,7 +279,7 @@ and this project adheres to a single monorepo-wide version declared in `global.j
 - Fixed a `NullPointerException` thrown when starting a dialogue that references a variable with
   no existing value while an external variable service is enabled.
 
-## [2.0.4] - 2026-07-22
+## [0.1.4] - 2026-07-22
 
 ### Added
 
@@ -305,7 +305,7 @@ and this project adheres to a single monorepo-wide version declared in `global.j
   now runs `npm run sync-version` in `apps/web` right after bumping `global.json`, and includes
   `apps/web/package.json`/`package-lock.json` in the release commit, so this can't drift again.
 
-## [2.0.3] - 2026-07-20
+## [0.1.3] - 2026-07-20
 
 ### Added
 
@@ -355,7 +355,7 @@ and this project adheres to a single monorepo-wide version declared in `global.j
   vendored `dlb-ui` UI fork) from the repo now that the VitePress site above has fully replaced it
   in production.
 
-## [2.0.2] - 2026-07-17
+## [0.1.2] - 2026-07-17
 
 ### Added
 
@@ -523,7 +523,7 @@ and this project adheres to a single monorepo-wide version declared in `global.j
   `ApplicationManager`'s `getDialogueDescriptions`/`getAvailableDialogues()`/
   `getAvailableDialogues(String)`/`getDialogueDefinition(ResourcePointer, TranslationContext)`.
 
-## [2.0.1] - 2026-07-16
+## [0.1.1] - 2026-07-16
 
 ### Added
 

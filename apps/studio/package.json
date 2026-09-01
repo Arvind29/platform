@@ -1,6 +1,6 @@
 {
   "name": "dlb-studio",
-  "version": "2.0.8",
+  "version": "0.1.8",
   "private": true,
   "type": "module",
   "engines": {
