@@ -22,6 +22,9 @@ and this project adheres to a single monorepo-wide version declared in `global.j
   — including a non-admin who passes `delegateUser` — now gets **`403 Forbidden`** (previously
   `401 Unauthorized`), still with error code `INSUFFICIENT_PRIVILEGES`; a missing, expired, or
   invalid token remains `401`.
+- Studio's "you can't do this" tooltips on gated actions (Publish / Configure / Export project,
+  Import / New project) no longer name a specific role — they now read "You don't have permission
+  to …", so they stay correct if the role a capability requires ever changes.
 
 ## [2.0.8] - 2026-09-01
 

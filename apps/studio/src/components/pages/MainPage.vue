@@ -159,7 +159,7 @@ const isAdmin = computed(() => !!state.value.user?.roles?.includes('admin'));
 const canConfigureProject = computed(() =>
     isAdmin.value && state.value.mode === DLB_APP_MODE_DRAFT);
 const configureProjectDisabledReason = computed(() => {
-    if (!isAdmin.value) return 'Only administrators can configure projects.';
+    if (!isAdmin.value) return "You don't have permission to configure projects.";
     if (state.value.mode !== DLB_APP_MODE_DRAFT) return 'Switch to Authoring Mode to configure the project.';
     return '';
 });
@@ -203,7 +203,7 @@ const hasUnpublishedChanges = computed(() =>
 const canPublish = computed(() =>
     isAdmin.value && hasUnpublishedChanges.value && state.value.mode === DLB_APP_MODE_DRAFT);
 const publishDisabledReason = computed(() => {
-    if (!isAdmin.value) return 'Only administrators can publish projects.';
+    if (!isAdmin.value) return "You don't have permission to publish projects.";
     if (state.value.mode !== DLB_APP_MODE_DRAFT) return 'Switch to Authoring Mode to publish.';
     if (!hasUnpublishedChanges.value) return 'There are no unpublished changes to publish.';
     return '';
@@ -225,7 +225,7 @@ const canExportProject = computed(() =>
     isAdmin.value && state.value.mode === DLB_APP_MODE_LIVE
     && !!state.value.selectedProject?.latestVersion);
 const exportProjectDisabledReason = computed(() => {
-    if (!isAdmin.value) return 'Only administrators can export projects.';
+    if (!isAdmin.value) return "You don't have permission to export projects.";
     if (state.value.mode !== DLB_APP_MODE_LIVE) return 'Switch to Live Mode to export the project.';
     if (!state.value.selectedProject?.latestVersion) return 'This project has not been published yet.';
     return '';
