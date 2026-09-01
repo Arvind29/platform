@@ -171,7 +171,7 @@ function confirmDelete() {
                         type="button"
                         :class="['flex items-center gap-1.5 px-3 py-1.5 rounded text-white text-xs font-title font-semibold transition-colors', isAdmin ? 'bg-orange-darker hover:bg-orange-dark cursor-pointer' : 'bg-orange-medium cursor-not-allowed opacity-60']"
                         :disabled="!isAdmin"
-                        :title="isAdmin ? '' : 'Only administrators can import projects'"
+                        :title="isAdmin ? '' : `You don't have permission to import projects`"
                         @click="isAdmin && (showImportModal = true)"
                     >
                         <FontAwesomeIcon icon="fa-solid fa-file-import" />
@@ -181,7 +181,7 @@ function confirmDelete() {
                         type="button"
                         :class="['flex items-center gap-1.5 px-3 py-1.5 rounded text-white text-xs font-title font-semibold transition-colors', isAdmin ? 'bg-orange-darker hover:bg-orange-dark cursor-pointer' : 'bg-orange-medium cursor-not-allowed opacity-60']"
                         :disabled="!isAdmin"
-                        :title="isAdmin ? '' : 'Only administrators can create new projects'"
+                        :title="isAdmin ? '' : `You don't have permission to create projects`"
                         @click="isAdmin && (showCreateWizard = true)"
                     >
                         <FontAwesomeIcon icon="fa-solid fa-plus" />
@@ -222,7 +222,7 @@ function confirmDelete() {
             <div v-else-if="projects.length === 0" class="text-center py-12 text-grey-dark font-title text-sm">
                 <FontAwesomeIcon icon="fa-solid fa-folder-open" class="text-3xl mb-3 text-grey-light" />
                 <p>No projects available.</p>
-                <p class="mt-1">{{ isAdmin ? 'Use the New Project button above to create one.' : 'Contact an administrator to have a project created for you.' }}</p>
+                <p class="mt-1">{{ isAdmin ? 'Use the New Project button above to create one.' : "You don't have permission to create projects — ask an administrator to set one up for you." }}</p>
             </div>
 
             <!-- Project list -->

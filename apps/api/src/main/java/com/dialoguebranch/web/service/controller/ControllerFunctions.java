@@ -144,34 +144,4 @@ public class ControllerFunctions {
 		}
 	}
 
-	/**
-	 * Extracts the JWT access token from the request's {@code Authorization: Bearer} header.
-	 *
-	 * @param request the incoming HTTP request.
-	 * @return the extracted access token string.
-	 * @throws UnauthorizedException if no valid token can be found in the request headers.
-	 */
-	public static String extractAccessToken(HttpServletRequest request) throws UnauthorizedException {
-		String token = null;
-		String authHeader = request.getHeader("Authorization");
-		if (authHeader != null && authHeader.startsWith("Bearer ")) {
-			token = authHeader.substring(7);
-		}
-
-		if (token != null) {
-
-			if (token.trim().isEmpty()) {
-				throw new UnauthorizedException(ErrorCode.AUTH_TOKEN_INVALID,
-						"Authentication token invalid");
-			} else {
-
-				return token;
-			}
-
-		}
-
-		throw new UnauthorizedException(ErrorCode.AUTH_TOKEN_NOT_FOUND,
-				"Authentication token not found");
-	}
-
 }

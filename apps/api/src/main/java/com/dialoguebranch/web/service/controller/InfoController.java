@@ -36,7 +36,7 @@ import com.dialoguebranch.web.service.DlbProperties;
 import com.dialoguebranch.web.service.ProtocolVersion;
 import com.dialoguebranch.web.service.QueryRunner;
 import com.dialoguebranch.web.service.ServiceContext;
-import com.dialoguebranch.web.service.auth.AuthenticationInfo;
+import com.dialoguebranch.web.service.auth.Permission;
 import com.dialoguebranch.web.service.exception.HttpException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -199,8 +199,7 @@ public class InfoController {
 
 					return payload;
 				},
-				version, ControllerFunctions.extractAccessToken(request), response, "", application,
-				AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, "", Permission.SERVICE_INFO_TECHNICAL);
 	}
 
 }

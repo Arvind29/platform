@@ -32,7 +32,7 @@ import com.dialoguebranch.web.service.execution.UserService;
 import com.dialoguebranch.web.service.Application;
 import com.dialoguebranch.web.service.ProtocolVersion;
 import com.dialoguebranch.web.service.QueryRunner;
-import com.dialoguebranch.web.service.auth.AuthenticationInfo;
+import com.dialoguebranch.web.service.auth.Permission;
 import com.dialoguebranch.web.service.storage.ServerLoggedDialogue;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -119,17 +119,14 @@ public class LogController {
 			logInfo += "&delegateUser=" + delegateUser;
 		logger.info(logInfo);
 
-		// Extract the access token, and throw an exception if it is not provided correctly
-		String accessToken = ControllerFunctions.extractAccessToken(request);
-
 		if(delegateUser == null || delegateUser.isEmpty()) {
 			return QueryRunner.runQuery(
 					(protocolVersion, authenticatedUser) -> doGetSession(authenticatedUser, sessionId),
-					version, accessToken, response, delegateUser, application, AuthenticationInfo.USER_ROLE_PARTICIPANT, AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+					version, response, delegateUser, Permission.LOG_READ_OWN);
 		} else {
 			return QueryRunner.runQuery(
 					(protocolVersion, authenticatedUser) -> doGetSession(delegateUser, sessionId),
-					version, accessToken, response, delegateUser, application, AuthenticationInfo.USER_ROLE_PARTICIPANT, AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+					version, response, delegateUser, Permission.LOG_READ_OWN);
 		}
 	}
 
@@ -197,17 +194,14 @@ public class LogController {
 			logInfo += "&delegateUser=" + delegateUser;
 		logger.info(logInfo);
 
-		// Extract the access token, and throw an exception if it is not provided correctly
-		String accessToken = ControllerFunctions.extractAccessToken(request);
-
 		if(delegateUser == null || delegateUser.isEmpty()) {
 			return QueryRunner.runQuery(
 					(protocolVersion, authenticatedUser) -> doVerifyId(authenticatedUser, sessionId),
-					version, accessToken, response, delegateUser, application, AuthenticationInfo.USER_ROLE_PARTICIPANT, AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+					version, response, delegateUser, Permission.LOG_READ_OWN);
 		} else {
 			return QueryRunner.runQuery(
 					(protocolVersion, authenticatedUser) -> doVerifyId(delegateUser, sessionId),
-					version, accessToken, response, delegateUser, application, AuthenticationInfo.USER_ROLE_PARTICIPANT, AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+					version, response, delegateUser, Permission.LOG_READ_OWN);
 		}
 
 	}

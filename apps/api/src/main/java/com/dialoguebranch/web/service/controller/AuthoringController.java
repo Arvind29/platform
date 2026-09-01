@@ -28,9 +28,8 @@
 
 package com.dialoguebranch.web.service.controller;
 
-import com.dialoguebranch.web.service.Application;
 import com.dialoguebranch.web.service.QueryRunner;
-import com.dialoguebranch.web.service.auth.AuthenticationInfo;
+import com.dialoguebranch.web.service.auth.Permission;
 import com.dialoguebranch.web.service.controller.schema.authoring.*;
 import com.dialoguebranch.web.service.exception.BadRequestException;
 import com.dialoguebranch.web.service.exception.ConflictException;
@@ -48,7 +47,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -76,9 +74,6 @@ import java.util.List;
 @Tag(name = "7. Authoring", description = "End-points for managing draft dialogues, their " +
 		"nodes, and their translations.")
 public class AuthoringController {
-
-	@Autowired
-	Application application;
 
 	private final ProjectService projectService;
 	private final DraftDialogueService draftDialogueService;
@@ -191,8 +186,7 @@ public class AuthoringController {
 									"Project not found: " + projectSlug));
 					return draftDialogueService.listDialogueSummaries(project);
 				},
-				version, ControllerFunctions.extractAccessToken(request), response, "", application,
-				AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, "", Permission.DIALOGUE_LIST);
 	}
 
 	/**
@@ -229,8 +223,7 @@ public class AuthoringController {
 									"Project not found: " + projectSlug));
 					return draftDialogueService.createDialogue(project, payload.getName());
 				},
-				version, ControllerFunctions.extractAccessToken(request), response, "", application,
-				AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, "", Permission.DIALOGUE_AUTHOR);
 	}
 
 	/**
@@ -272,8 +265,7 @@ public class AuthoringController {
 					draftDialogueService.deleteDialogue(dialogue);
 					return null;
 				},
-				version, ControllerFunctions.extractAccessToken(request), response, "", application,
-				AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, "", Permission.DIALOGUE_AUTHOR);
 	}
 
 	/**
@@ -313,8 +305,7 @@ public class AuthoringController {
 					draftDialogueService.restoreDialogue(dialogue);
 					return dialogue;
 				},
-				version, ControllerFunctions.extractAccessToken(request), response, "", application,
-				AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, "", Permission.DIALOGUE_AUTHOR);
 	}
 
 	/**
@@ -354,8 +345,7 @@ public class AuthoringController {
 									"Dialogue not found: " + dialogueName));
 					return draftDialogueService.findDialogueReferences(project, dialogueName);
 				},
-				version, ControllerFunctions.extractAccessToken(request), response, "", application,
-				AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, "", Permission.DIALOGUE_AUTHOR);
 	}
 
 	/**
@@ -406,8 +396,7 @@ public class AuthoringController {
 					return draftDialogueService.renameDialogue(project, dialogue, newName,
 							updateReferences);
 				},
-				version, ControllerFunctions.extractAccessToken(request), response, "", application,
-				AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, "", Permission.DIALOGUE_AUTHOR);
 	}
 
 	// ------------------------------------------------------------- //
@@ -449,8 +438,7 @@ public class AuthoringController {
 									"Dialogue not found: " + dialogueName));
 					return draftDialogueService.listNodes(dialogue);
 				},
-				version, ControllerFunctions.extractAccessToken(request), response, "", application,
-				AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, "", Permission.DIALOGUE_AUTHOR);
 	}
 
 	/**
@@ -495,8 +483,7 @@ public class AuthoringController {
 					return draftDialogueService.createNode(dialogue, payload.getTitle(),
 							payload.getHeader(), payload.getBody());
 				},
-				version, ControllerFunctions.extractAccessToken(request), response, "", application,
-				AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, "", Permission.DIALOGUE_AUTHOR);
 	}
 
 	/**
@@ -543,8 +530,7 @@ public class AuthoringController {
 					return draftDialogueService.updateNode(dialogue, node, payload.getHeader(),
 							payload.getBody());
 				},
-				version, ControllerFunctions.extractAccessToken(request), response, "", application,
-				AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, "", Permission.DIALOGUE_AUTHOR);
 	}
 
 	/**
@@ -590,8 +576,7 @@ public class AuthoringController {
 					draftDialogueService.deleteNode(dialogue, node);
 					return null;
 				},
-				version, ControllerFunctions.extractAccessToken(request), response, "", application,
-				AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, "", Permission.DIALOGUE_AUTHOR);
 	}
 
 	/**
@@ -636,8 +621,7 @@ public class AuthoringController {
 									"Node not found: " + nodeTitle));
 					return draftDialogueService.findNodeReferences(project, dialogueName, nodeTitle);
 				},
-				version, ControllerFunctions.extractAccessToken(request), response, "", application,
-				AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, "", Permission.DIALOGUE_AUTHOR);
 	}
 
 	/**
@@ -693,8 +677,7 @@ public class AuthoringController {
 					return draftDialogueService.renameNode(project, dialogue, node, newTitle,
 							updateReferences);
 				},
-				version, ControllerFunctions.extractAccessToken(request), response, "", application,
-				AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, "", Permission.DIALOGUE_AUTHOR);
 	}
 
 	// ----------------------------------------------------------------------- //
@@ -746,8 +729,7 @@ public class AuthoringController {
 					return draftDialogueService.createOrUpdateTranslation(dialogue,
 							translationLanguage, payload.getContent());
 				},
-				version, ControllerFunctions.extractAccessToken(request), response, "", application,
-				AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, "", Permission.DIALOGUE_AUTHOR);
 	}
 
 	/**
@@ -796,8 +778,7 @@ public class AuthoringController {
 					draftDialogueService.deleteTranslation(dialogue, translation);
 					return null;
 				},
-				version, ControllerFunctions.extractAccessToken(request), response, "", application,
-				AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, "", Permission.DIALOGUE_AUTHOR);
 	}
 
 	/**
@@ -846,8 +827,7 @@ public class AuthoringController {
 									draftDialogueService.findTranslation(dialogue, translationLanguage))
 							.orElse(null);
 				},
-				version, ControllerFunctions.extractAccessToken(request), response, "", application,
-				AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, "", Permission.DIALOGUE_AUTHOR);
 	}
 
 	/**
@@ -886,8 +866,7 @@ public class AuthoringController {
 									"Dialogue not found: " + dialogueName));
 					return draftDialogueService.listTranslatableTerms(dialogue);
 				},
-				version, ControllerFunctions.extractAccessToken(request), response, "", application,
-				AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, "", Permission.DIALOGUE_AUTHOR);
 	}
 
 }

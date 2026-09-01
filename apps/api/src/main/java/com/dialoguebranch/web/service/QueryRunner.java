@@ -29,6 +29,8 @@
 package com.dialoguebranch.web.service;
 
 import com.dialoguebranch.web.service.auth.AuthenticationInfo;
+import com.dialoguebranch.web.service.auth.AuthorizationService;
+import com.dialoguebranch.web.service.auth.Permission;
 import com.dialoguebranch.web.service.exception.*;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -42,7 +44,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This class can run queries. It can validate an authentication token.
+ * Runs {@link AuthQuery} instances behind a {@link Permission} check, and resolves the
+ * authenticated caller from the security context.
  *
  * @author Dennis Hofs
  * @author Harm op den Akker
@@ -55,27 +58,27 @@ public class QueryRunner {
 	private QueryRunner() { }
 
 	/**
-	 * Runs a query on the authentication database. If the HTTP request is specified, it will
-	 * validate the authentication token. If there is no token in the request, or the token is empty
-	 * or invalid, it throws an HttpException with 401 Unauthorized. If the request is null, it will
-	 * not validate anything. This can be used for a login or signup.
+	 * Runs a query, first requiring that the authenticated user holds {@code requiredPermission}
+	 * (see {@link AuthorizationService}). An authenticated user without the permission gets a
+	 * {@code 403 Forbidden}; a request with no authenticated caller gets a {@code 401
+	 * Unauthorized} (normally the OAuth2 resource-server filter has already rejected it as such
+	 * before this point).
 	 *
 	 * @param <T> the return type of the query result.
 	 * @param query the query
 	 * @param versionName the protocol version name (see {@link ProtocolVersion})
-	 * @param providedAccessToken the provided JWT access token
 	 * @param response the HTTP response to add header WWW-Authenticate in case of 401 Unauthorized
 	 * @param delegateUser the "Dialogue Branch user" for which this query should be run, or ""
 	 *                     if this should be for the currently authenticated user
-	 * @param application the {@link Application} context.
+	 * @param requiredPermission the permission the caller must hold
 	 * @return the query result
 	 * @throws HttpException if the query should return an HTTP error status
 	 * @throws HttpException if an unexpected error occurs. This results in HTTP error status 500
 	 *                   Internal Server Error.
 	 */
-	public static <T> T runQuery(AuthQuery<T> query, String versionName, String providedAccessToken,
-			HttpServletResponse response, String delegateUser, Application application,
-			String... requiredRoles)
+	public static <T> T runQuery(AuthQuery<T> query, String versionName,
+			HttpServletResponse response, String delegateUser,
+			Permission requiredPermission)
 			throws HttpException {
 		ProtocolVersion version;
 		try {
@@ -86,53 +89,47 @@ public class QueryRunner {
 		try {
 			AuthenticationInfo authenticationInfo = null;
 
-			if (providedAccessToken != null)
-				authenticationInfo = validateAccessToken(providedAccessToken, application);
+			// Resolve the caller from the validated security context: the OAuth2 resource-server
+			// filter has already rejected (401) any request whose bearer token was missing or
+			// invalid, so a JwtAuthenticationToken here is trustworthy.
+			if (SecurityContextHolder.getContext().getAuthentication()
+					instanceof JwtAuthenticationToken jwtAuth)
+				authenticationInfo = authenticationInfoFromKeycloakJwt(jwtAuth.getToken());
 
-			// Check that the authenticated user has at least one of the required roles
-			if (requiredRoles.length > 0) {
-				boolean hasRequiredRole = false;
-				if (authenticationInfo != null) {
-					for (String role : requiredRoles) {
-						if (authenticationInfo.hasRole(role)) {
-							hasRequiredRole = true;
-							break;
-						}
-					}
-				}
-				if (!hasRequiredRole) {
-					String userIdentifier = authenticationInfo != null
-							? authenticationInfo.getUsername() : "Unknown";
-					throw new UnauthorizedException(ErrorCode.INSUFFICIENT_PRIVILEGES,
-							"User '" + userIdentifier + "' does not have the required role to " +
-							"access this endpoint.");
-				}
-			}
+			// Belt and braces: every endpoint routed through here is behind
+			// .anyRequest().authenticated(), so an unauthenticated request is already a 401 before
+			// this point. Should that ever stop holding (e.g. an endpoint added to the permitAll
+			// list still calling runQuery), a missing caller is a 401, not the 403 that
+			// AuthorizationService.require would otherwise raise for a null user.
+			if (authenticationInfo == null)
+				throw new UnauthorizedException(ErrorCode.AUTH_TOKEN_NOT_FOUND,
+						"No valid authentication token found.");
+
+			AuthorizationService.require(authenticationInfo, requiredPermission);
+
+			// authenticationInfo is non-null past the guard above.
+			String authenticatedUser = authenticationInfo.getUsername();
 
 			// If the request was made for "this" (authenticated) user
-			if(delegateUser == null || delegateUser.isEmpty()) {
-				String authenticatedUser = "";
-				if(authenticationInfo != null) authenticatedUser = authenticationInfo.getUsername();
+			if (delegateUser == null || delegateUser.isEmpty()) {
 				return query.runQuery(version, authenticatedUser);
 
 			// If the request was made for a specific delegateUser that happens to be "this"
 			// (authenticated) user
-			} else if((authenticationInfo != null) && delegateUser.equals(
-					authenticationInfo.getUsername())) {
+			} else if (delegateUser.equals(authenticatedUser)) {
 				return query.runQuery(version, delegateUser);
 
-			// If "this" user is an admin making a delegated call
-			} else if((authenticationInfo != null) && (authenticationInfo.hasRole(
-					AuthenticationInfo.USER_ROLE_ADMIN))) {
+			// If "this" user is allowed to act on behalf of another user
+			} else if (AuthorizationService.hasPermission(authenticationInfo,
+					Permission.USER_DELEGATE)) {
 				return query.runQuery(version, delegateUser);
 
-			// Otherwise, something is wrong
+			// Otherwise the caller is trying to act on behalf of another user without the
+			// USER_DELEGATE permission.
 			} else {
-				String userIdentifier = "Unknown";
-				if(authenticationInfo != null) userIdentifier = authenticationInfo.getUsername();
-				throw new UnauthorizedException(ErrorCode.INSUFFICIENT_PRIVILEGES,
-					"Attempting to run query for delegateUser '" + delegateUser +
-					"', but currently logged in user '" + userIdentifier + "' is not an admin.");
+				throw new ForbiddenException(ErrorCode.INSUFFICIENT_PRIVILEGES,
+					"User '" + authenticatedUser + "' does not have the '" + Permission.USER_DELEGATE +
+					"' permission required to run a query for delegateUser '" + delegateUser + "'.");
 			}
 		} catch (UnauthorizedException ex) {
 			response.addHeader("WWW-Authenticate", "None");
@@ -146,20 +143,15 @@ public class QueryRunner {
 	}
 
 	/**
-	 * Validates the access token in the specified HTTP request. If no token is specified,
-	 * or the token is empty or invalid, it will throw an HttpException with 401 Unauthorized.
-	 * Otherwise, it will return the {@link AuthenticationInfo} object representing the information
-	 * of the authenticated user.
+	 * Resolves the authenticated caller from the validated security context. The OAuth2
+	 * resource-server filter has already verified (or rejected, as a 401) the bearer token by the
+	 * time this runs, so a {@link JwtAuthenticationToken} in the context is trustworthy; anything
+	 * else means there is no authenticated caller and yields a 401.
 	 *
-	 * @param providedAccessToken the JWT access token string to validate.
-	 * @param application the {@link Application} context (unused, kept for a stable call signature).
-	 * @return the {@link AuthenticationInfo} for the authenticated user
-	 * @throws UnauthorizedException if no token is specified, or the token is empty or invalid
+	 * @return the {@link AuthenticationInfo} for the authenticated caller
+	 * @throws UnauthorizedException if there is no authenticated caller in the security context
 	 */
-	public static AuthenticationInfo validateAccessToken(String providedAccessToken,
-														 Application application)
-			throws UnauthorizedException {
-
+	public static AuthenticationInfo requireAuthenticatedUser() throws UnauthorizedException {
 		var authentication = SecurityContextHolder.getContext().getAuthentication();
 		if (!(authentication instanceof JwtAuthenticationToken jwtAuth)) {
 			throw new UnauthorizedException(ErrorCode.AUTH_TOKEN_INVALID,

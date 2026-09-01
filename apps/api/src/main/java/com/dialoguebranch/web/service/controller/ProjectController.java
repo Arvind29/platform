@@ -30,7 +30,7 @@ package com.dialoguebranch.web.service.controller;
 
 import com.dialoguebranch.web.service.Application;
 import com.dialoguebranch.web.service.QueryRunner;
-import com.dialoguebranch.web.service.auth.AuthenticationInfo;
+import com.dialoguebranch.web.service.auth.Permission;
 import com.dialoguebranch.web.service.controller.schema.authoring.*;
 import com.dialoguebranch.web.service.exception.BadRequestException;
 import com.dialoguebranch.web.service.exception.ConflictException;
@@ -145,8 +145,7 @@ public class ProjectController {
 					logger.info("GET /v{}/project/list-projects [user: {}]", version, user);
 					return projectService.listProjects();
 				},
-				version, ControllerFunctions.extractAccessToken(request), response, "", application,
-				AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, "", Permission.PROJECT_READ);
 	}
 
 	/**
@@ -176,8 +175,7 @@ public class ProjectController {
 							.orElseThrow(() -> new NotFoundException(
 									"Project not found: " + projectSlug));
 				},
-				version, ControllerFunctions.extractAccessToken(request), response, "", application,
-				AuthenticationInfo.USER_ROLE_EDITOR, AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, "", Permission.PROJECT_READ);
 	}
 
 	/**
@@ -219,8 +217,7 @@ public class ProjectController {
 							payload.getDisplayName(), payload.getDescription(),
 							payload.getSourceLanguageCode(), payload.getSourceLanguageName());
 				},
-				version, ControllerFunctions.extractAccessToken(request), response, "", application,
-				AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, "", Permission.PROJECT_CREATE);
 	}
 
 	/**
@@ -256,8 +253,7 @@ public class ProjectController {
 					return draftProjectService.updateDraftMetadata(project,
 							payload.getDisplayName(), payload.getDescription());
 				},
-				version, ControllerFunctions.extractAccessToken(request), response, "", application,
-				AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, "", Permission.PROJECT_UPDATE);
 	}
 
 	/**
@@ -299,8 +295,7 @@ public class ProjectController {
 							payload.getDescription(), payload.getRemoveLanguageIds(),
 							payload.getAddLanguages(), payload.getUpdateLanguages());
 				},
-				version, ControllerFunctions.extractAccessToken(request), response, "", application,
-				AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, "", Permission.PROJECT_UPDATE);
 	}
 
 	/**
@@ -334,8 +329,7 @@ public class ProjectController {
 					projectService.deleteProject(project);
 					return null;
 				},
-				version, ControllerFunctions.extractAccessToken(request), response, "", application,
-				AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, "", Permission.PROJECT_DELETE);
 	}
 
 	// -------------------------------------------------------------- //
@@ -379,8 +373,7 @@ public class ProjectController {
 									"attachment; filename=\"" + project.getSlug() + ".zip\"")
 							.body(archive);
 				},
-				version, ControllerFunctions.extractAccessToken(request), response, "", application,
-				AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, "", Permission.PROJECT_IMPORT_EXPORT);
 	}
 
 	/**
@@ -412,8 +405,7 @@ public class ProjectController {
 					logger.info("POST /v{}/project/import-project [user: {}]", version, user);
 					return projectImportService.importProject(file);
 				},
-				version, ControllerFunctions.extractAccessToken(request), response, "", application,
-				AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, "", Permission.PROJECT_IMPORT_EXPORT);
 	}
 
 	// ------------------------------------------------------------------------ //
@@ -474,8 +466,7 @@ public class ProjectController {
 					return draftProjectService.addDraftLanguage(project,
 							payload.getTranslationLanguageName(), payload.getTranslationLanguageCode());
 				},
-				version, ControllerFunctions.extractAccessToken(request), response, "", application,
-				AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, "", Permission.PROJECT_MANAGE_LANGUAGES);
 	}
 
 	/**
@@ -516,8 +507,7 @@ public class ProjectController {
 					draftProjectService.removeDraftLanguage(language);
 					return null;
 				},
-				version, ControllerFunctions.extractAccessToken(request), response, "", application,
-				AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, "", Permission.PROJECT_MANAGE_LANGUAGES);
 	}
 
 	/**
@@ -557,8 +547,7 @@ public class ProjectController {
 					draftProjectService.restoreDraftLanguage(language);
 					return null;
 				},
-				version, ControllerFunctions.extractAccessToken(request), response, "", application,
-				AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, "", Permission.PROJECT_MANAGE_LANGUAGES);
 	}
 
 	/**
@@ -597,8 +586,7 @@ public class ProjectController {
 							resolveOwnedDraftLanguage(project, translationLanguageId);
 					return draftDialogueService.findDialoguesUsingLanguage(language);
 				},
-				version, ControllerFunctions.extractAccessToken(request), response, "", application,
-				AuthenticationInfo.USER_ROLE_ADMIN);
+				version, response, "", Permission.PROJECT_MANAGE_LANGUAGES);
 	}
 
 }

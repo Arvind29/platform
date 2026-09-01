@@ -96,9 +96,9 @@ Once a token is validated, the Web Service reads the caller's username from the 
 
 * `participant` — may execute dialogues (`/dialogue/*`) and read/write their own Dialogue Branch Variables (`/variables/*`).
 * `editor` — everything `participant` can do, plus authoring and publishing dialogue content (`/authoring/*`, `/publish/*`, `/draft/*`) and listing dialogues in a project (`/dialogue/list-dialogues`).
-* `admin` — everything `editor` can do, plus managing projects (`/project/*`), and acting *on behalf of* another user by passing the optional `delegateUser` parameter present on most end-points.
+* `admin` — everything `editor` can do, plus managing projects (`/project/*`), reading technical service information (`/info/technical`), and acting *on behalf of* another user by passing the optional `delegateUser` parameter present on most end-points.
 
-Each end-point declares the minimum set of roles it accepts; calling with insufficient privileges results in a `401 Unauthorized` response with error code `INSUFFICIENT_PRIVILEGES`.
+Internally each role maps to a fixed set of permissions, and every end-point requires one specific permission. A caller whose token is valid but whose roles do not grant the required permission gets a `403 Forbidden` response with error code `INSUFFICIENT_PRIVILEGES`. (A missing, expired, or otherwise invalid token is rejected earlier, with `401 Unauthorized`.)
 
 This `delegateUser` mechanism may be used e.g. in a scenario where "clients" don't directly interact with the Dialogue Branch Web Service, but instead connect through a trusted server component that manages a single connection (see Figure below).
 
