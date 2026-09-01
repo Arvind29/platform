@@ -3,6 +3,7 @@ dlb:
     # SecurityConfig builds the ClientRegistration from these dlb.bff.* properties directly (see
     # its Javadoc) — no OIDC discovery call happens either way, so these values just need to be
     # well-formed, not actually reachable, for a context-load test.
+    session-max-age: 30d
     oauth2-client-id: test-bff
     oauth2-client-secret: test-secret
     keycloak-base-url: http://localhost:8081/
