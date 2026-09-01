@@ -7,6 +7,14 @@ and this project adheres to a single monorepo-wide version declared in `global.j
 
 ## [Unreleased]
 
+### Added
+
+- Internal foundation for permission-based access control ([#28](https://github.com/dialoguebranch/platform/issues/28)):
+  a `Permission` catalogue, a `Role` → permission mapping (`participant` ⊂ `editor` ⊂ `admin`),
+  and an `AuthorizationService` that throws `403 INSUFFICIENT_PRIVILEGES` when a user lacks a
+  required permission. Not yet enforced on any end-point — wiring the controllers onto permissions
+  is [#58](https://github.com/dialoguebranch/platform/issues/58).
+
 ## [2.0.8] - 2026-09-01
 
 ### Changed
