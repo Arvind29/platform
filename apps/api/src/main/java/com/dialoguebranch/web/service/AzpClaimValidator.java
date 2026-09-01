@@ -51,8 +51,10 @@ import java.util.Set;
  * configuration ({@code dlb.auth.keycloak.trusted-clients}), rather than an emergent property of
  * whatever clients happen to be registered in the realm.</p>
  *
- * <p>A single {@code "*"} entry in the allow-list disables the check entirely: any token from an
+ * <p>A lone {@code "*"} entry in the allow-list disables the check entirely: any token from an
  * otherwise-trusted realm is accepted, restoring the behaviour from before this validator existed.
+ * {@code "*"} must be the <em>only</em> entry when present — a list that mixes it with real client
+ * ids is a configuration mistake (it would silently trust everyone) and is rejected at startup.
  * A token with no {@code azp} claim is always rejected (Keycloak always populates it on access
  * tokens, so its absence is anomalous).</p>
  *
@@ -84,6 +86,7 @@ final class AzpClaimValidator implements OAuth2TokenValidator<Jwt> {
      * {@link #WARN_CACHE_CAP} entries; guarded by {@code this} (only touched on the uncommon
      * rejection path).
      */
+    @SuppressWarnings("serial") // anonymous LinkedHashMap subclass, never serialized
     private final Map<String, Boolean> loggedAzpValues =
             new LinkedHashMap<>(16, 0.75f, true) {
                 @Override
@@ -97,16 +100,23 @@ final class AzpClaimValidator implements OAuth2TokenValidator<Jwt> {
 
     /**
      * Creates a validator that accepts tokens whose {@code azp} claim is one of
-     * {@code trustedClients}. If {@code trustedClients} contains {@code "*"}, every token is
+     * {@code trustedClients}. If {@code trustedClients} is exactly {@code ["*"]}, every token is
      * accepted regardless of its {@code azp}.
      *
      * @param trustedClients the trusted client IDs; must be non-empty (callers pass
      *                       {@code DlbProperties.Auth.Keycloak#getEffectiveTrustedClients()},
      *                       which never returns an empty list).
+     * @throws IllegalArgumentException if {@code "*"} appears alongside other entries — that would
+     *                                  silently trust every client, so it is treated as a
+     *                                  configuration error rather than honoured.
      */
     AzpClaimValidator(Collection<String> trustedClients) {
         this.trustedClients = Set.copyOf(trustedClients);
         this.trustAnyClient = this.trustedClients.contains("*");
+        if (trustAnyClient && this.trustedClients.size() > 1) {
+            throw new IllegalArgumentException("dlb.auth.keycloak.trusted-clients: the wildcard "
+                    + "\"*\" must be the only entry when present; got " + this.trustedClients);
+        }
     }
 
     @Override

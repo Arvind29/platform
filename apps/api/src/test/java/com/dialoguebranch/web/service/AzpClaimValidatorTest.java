@@ -16,6 +16,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -95,6 +96,12 @@ class AzpClaimValidatorTest {
     void wildcardEntryAcceptsATokenWithNoAzpClaim() {
         AzpClaimValidator validator = new AzpClaimValidator(List.of("*"));
         assertFalse(validator.validate(tokenWithAzp(null)).hasErrors());
+    }
+
+    @Test
+    void rejectsAnAllowListThatMixesTheWildcardWithRealClientIds() {
+        assertThrows(IllegalArgumentException.class,
+                () -> new AzpClaimValidator(List.of("*", "dlb-web-service")));
     }
 
     @Test
