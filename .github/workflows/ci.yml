@@ -19,3 +19,10 @@ jobs:
 
       - name: Check Python
         run: python --version
+      - name: Run tests
+        run: |
+          if [ -d "tests" ]; then
+            python -m pytest tests
+          else
+            echo "No tests directory found"
+          fi
